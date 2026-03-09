@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>贪吃蛇</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="game-header">
+      <h1>🐍 贪吃蛇</h1>
+      <div class="difficulty-selector">
+        <span class="label">难度:</span>
+        <button class="difficulty-btn" data-difficulty="easy">简单</button>
+        <button class="difficulty-btn active" data-difficulty="normal">普通</button>
+        <button class="difficulty-btn" data-difficulty="hard">困难</button>
+      </div>
+    </header>
+
+    <main class="game-main">
+      <div class="canvas-wrapper">
+        <canvas id="gameCanvas"></canvas>
+      </div>
+
+      <aside class="game-info">
+        <div class="info-card">
+          <h3>🎮 操作说明</h3>
+          <ul>
+            <li><kbd>↑</kbd> / <kbd>W</kbd> - 向上移动</li>
+            <li><kbd>↓</kbd> / <kbd>S</kbd> - 向下移动</li>
+            <li><kbd>←</kbd> / <kbd>A</kbd> - 向左移动</li>
+            <li><kbd>→</kbd> / <kbd>D</kbd> - 向右移动</li>
+            <li><kbd>空格</kbd> - 暂停/继续</li>
+            <li><kbd>R</kbd> - 重新开始</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h3>📊 分数信息</h3>
+          <div class="score-display">
+            <div class="score-item">
+              <span class="label">当前分数:</span>
+              <span id="currentScore" class="value">0</span>
+            </div>
+            <div class="score-item">
+              <span class="label">最高分数:</span>
+              <span id="highScore" class="value">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>📱 触屏操作</h3>
+          <p>在画布上滑动即可控制蛇的移动方向</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="game-footer">
+      <button id="startBtn" class="btn btn-primary">开始游戏</button>
+      <button id="pauseBtn" class="btn btn-secondary">暂停</button>
+      <button id="restartBtn" class="btn btn-warning">重新开始</button>
+    </footer>
+  </div>
+
+  <!-- 游戏脚本 -->
+  <script type="module">
+    import { Game } from './js/Game.js';
+
+    // 创建游戏实例
+    const game = new Game();
+
+    // 显示开始界面
+    game.showStartScreen();
+
+    // DOM 元素
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+    const currentScoreEl = document.getElementById('currentScore');
+    const highScoreEl = document.getElementById('highScore');
+
+    // 开始游戏
+    startBtn.addEventListener('click', () => {
+      game.start();
+      startBtn.textContent = '游戏中...';
+      startBtn.disabled = true;
+    });
+
+    // 暂停/继续
+    pauseBtn.addEventListener('click', () => {
+      const status = game.getStatus();
+      if (status === 'playing') {
+        game.pause();
+        pauseBtn.textContent = '继续';
+      } else if (status === 'paused') {
+        game.resume();
+        pauseBtn.textContent = '暂停';
+      }
+    });
+
+    // 重新开始
+    restartBtn.addEventListener('click', () => {
+      game.restart();
+      startBtn.textContent = '游戏中...';
+      startBtn.disabled = true;
+      pauseBtn.textContent = '暂停';
+    });
+
+    // 难度切换
+    difficultyBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const difficulty = btn.dataset.difficulty;
+        if (game.setDifficulty(difficulty)) {
+          // 更新 UI
+          difficultyBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+      });
+    });
+
+    // 分数显示更新
+    const updateScoreDisplay = () => {
+      const scoreManager = game.scoreManager;
+      currentScoreEl.textContent = scoreManager.getScore();
+      highScoreEl.textContent = scoreManager.getHighScore();
+    };
+
+    // 定期更新分数显示（每 100ms）
+    setInterval(updateScoreDisplay, 100);
+
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      // 空格键开始/暂停
+      if (e.key === ' ') {
+        e.preventDefault();
+        const status = game.getStatus();
+        if (status === 'start') {
+          startBtn.click();
+        } else if (status === 'playing') {
+          pauseBtn.click();
+        } else if (status === 'paused') {
+          pauseBtn.click();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
