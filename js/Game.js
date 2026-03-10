@@ -235,3 +235,6 @@ export class Game {
 
 // 导出为全局变量供 HTML 使用
 window.SnakeGame = Game;
+
+// 注意：Snake 类已移至独立的 Snake.js 文件，通过 import 引入
+// Issue #21: 已确认无重复类定义
