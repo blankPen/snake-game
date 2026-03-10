@@ -20,8 +20,11 @@ export class InputHandler {
   constructor() {
     this.directionQueue = [];
     this.lastProcessedTime = 0;
+    this._isPaused = false;
+    this._lastDirection = null;
     this.callbacks = {
       onDirectionChange: null,
+      onTogglePause: null,
       onPause: null,
       onResume: null,
       onRestart: null
@@ -119,10 +122,20 @@ export class InputHandler {
    * @param {string} direction - 方向字符串
    */
   _queueDirection(direction) {
+    // 防止 180° 方向反向
+    const opposites = { 'up': 'down', 'down': 'up', 'left': 'right', 'right': 'left' };
+    if (opposites[direction] === this._lastDirection) {
+      return;
+    }
+    
     this.directionQueue.push(direction);
+    // 更新最后处理的方向
+    if (this.directionQueue.length > 0) {
+      this._lastDirection = this.directionQueue[this.directionQueue.length - 1];
+    }
     // 限制队列长度，防止过度积累
     if (this.directionQueue.length > 3) {
-      this.directionQueue = this.directionQueue.slice(-2);
+      this.directionQueue = this.directionQueue.slice(-3);
     }
   }
 
@@ -130,10 +143,11 @@ export class InputHandler {
    * 切换暂停/继续
    */
   _togglePause() {
-    if (this.callbacks.onPause && this.callbacks.onResume) {
-      // 这里需要通过游戏状态来判断，简化处理
-      // 实际应该通过 getState 来判断当前状态
-      // 暂时交替调用
+    // 使用单一回调，由外部游戏状态决定行为
+    if (this.callbacks.onTogglePause) {
+      this.callbacks.onTogglePause(!this._isPaused);
+    } else if (this.callbacks.onPause && this.callbacks.onResume) {
+      // 兼容旧的分离回调
       if (!this._isPaused) {
         this.callbacks.onPause();
         this._isPaused = true;
