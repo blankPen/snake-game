@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成就 - 贪吃蛇</title>
+  <link rel="stylesheet" href="css/achievement.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🏆 成就中心</h1>
+      <p class="subtitle">完成挑战，解锁成就</p>
+    </header>
+
+    <!-- 统计信息 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="icon">🎮</div>
+        <div class="value" id="totalGames">0</div>
+        <div class="label">总游戏场次</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon">⭐</div>
+        <div class="value" id="highestScore">0</div>
+        <div class="label">最高得分</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon">🍎</div>
+        <div class="value" id="maxFoodStreak">0</div>
+        <div class="label">最高连续进食</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon">⏱️</div>
+        <div class="value" id="longestSurvival">0</div>
+        <div class="label">最长存活(秒)</div>
+      </div>
+    </div>
+
+    <!-- 成就列表 -->
+    <section class="achievements-section">
+      <h2 class="section-title">
+        <span>🎖️</span>
+        成就列表 
+        <span id="achievementCount">(0/0)</span>
+      </h2>
+      <div class="achievements-grid" id="achievementsList">
+        <!-- 成就将通过 JS 动态加载 -->
+      </div>
+    </section>
+
+    <!-- 返回按钮 -->
+    <div class="back-section">
+      <a href="index.html" class="btn btn-primary">返回游戏</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AchievementSystem } from './js/achievement.js';
+
+    // 创建成就系统实例
+    const achievementSystem = new AchievementSystem();
+
+    // 加载统计数据
+    function loadStats() {
+      const stats = achievementSystem.getGameStats();
+      document.getElementById('totalGames').textContent = stats.totalGames;
+      document.getElementById('highestScore').textContent = stats.highestScore;
+      document.getElementById('maxFoodStreak').textContent = stats.maxFoodStreak;
+      document.getElementById('longestSurvival').textContent = stats.longestSurvivalTime;
+    }
+
+    // 加载成就列表
+    function loadAchievements() {
+      const achievements = achievementSystem.getAllAchievements();
+      const container = document.getElementById('achievementsList');
+      const countEl = document.getElementById('achievementCount');
+      
+      const unlockedCount = achievementSystem.getUnlockedCount();
+      const totalCount = achievementSystem.getTotalCount();
+      countEl.textContent = `(${unlockedCount}/${totalCount})`;
+
+      container.innerHTML = achievements.map(achievement => `
+        <div class="achievement-card ${achievement.unlocked ? 'unlocked' : 'locked'}">
+          <div class="achievement-icon">${achievement.icon}</div>
+          <div class="achievement-info">
+            <div class="achievement-name">${achievement.name}</div>
+            <div class="achievement-description">${achievement.description}</div>
+          </div>
+          <div class="achievement-badge">
+            ${achievement.unlocked ? '✅' : '🔒'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 初始化页面
+    loadStats();
+    loadAchievements();
+  </script>
+</body>
+</html>

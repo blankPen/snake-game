@@ -3,6 +3,7 @@ import { Snake } from './Snake.js';
 import { Food } from './Food.js';
 import { InputHandler } from './InputHandler.js';
 import { ScoreManager } from './ScoreManager.js';
+import { AchievementSystem } from './achievement.js';
 
 /**
  * 游戏主类
@@ -21,6 +22,7 @@ export class Game {
     this.food = new Food();
     this.inputHandler = new InputHandler();
     this.scoreManager = new ScoreManager();
+    this.achievementSystem = new AchievementSystem();
 
     // 设置回调
     this._setupCallbacks();
@@ -45,6 +47,8 @@ export class Game {
     if (this.status === 'start') {
       this.status = 'playing';
       this.lastTime = performance.now();
+      // 通知成就系统游戏开始
+      this.achievementSystem.onGameStart();
       this.gameLoop();
     }
   }
@@ -101,6 +105,8 @@ export class Game {
     if (ateFood) {
       this.scoreManager.addScore();
       this.food.generate(this.snake.getBody());
+      // 通知成就系统吃到食物
+      this.achievementSystem.onFoodEaten();
     }
   }
 
@@ -147,6 +153,15 @@ export class Game {
   gameOver() {
     this.status = 'gameover';
     this._render();
+    
+    // 检查成就解锁
+    const score = this.scoreManager.getScore();
+    const newlyUnlocked = this.achievementSystem.onGameOver(score);
+    
+    // 显示新解锁的成就
+    if (newlyUnlocked.length > 0) {
+      this._showAchievementUnlocked(newlyUnlocked);
+    }
   }
 
   /**
@@ -185,6 +200,40 @@ export class Game {
    */
   getStatus() {
     return this.status;
+  }
+
+  /**
+   * 显示新解锁的成就提示
+   * @param {Array} achievements - 新解锁的成就列表
+   */
+  _showAchievementUnlocked(achievements) {
+    achievements.forEach((achievement, index) => {
+      setTimeout(() => {
+        this._createAchievementToast(achievement);
+      }, index * 2000); // 每个成就显示间隔 2 秒
+    });
+  }
+
+  /**
+   * 创建成就解锁提示弹窗
+   * @param {Object} achievement - 成就对象
+   */
+  _createAchievementToast(achievement) {
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.innerHTML = `
+      <div class="icon">${achievement.icon}</div>
+      <div class="content">
+        <div class="title">🎉 成就解锁！</div>
+        <div class="name">${achievement.name}</div>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    
+    // 4 秒后自动移除（动画 + 延迟）
+    setTimeout(() => {
+      toast.remove();
+    }, 3500);
   }
 
   /**
