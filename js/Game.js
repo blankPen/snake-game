@@ -106,12 +106,12 @@ export class Game {
 
     // 处理吃食物
     if (ateFood) {
-      const score = this.scoreManager.addScore();
+      const scoreResult = this.scoreManager.addScore();
       const foodPos = this.food.getPosition();
       
       // 触发动画
       this.animationManager.triggerFoodEaten(foodPos);
-      this.animationManager.triggerScorePopup(foodPos, score);
+      this.animationManager.triggerScorePopup(foodPos, scoreResult.added);
       
       // 生成新食物并触发动画
       this.food.generate(this.snake.getBody());
