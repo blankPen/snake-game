@@ -70,6 +70,10 @@ export class Game {
       this.accumulatedTime -= speed;
     }
 
+    // 更新动画
+    this.renderer.updateFoodAnimation();
+    this.renderer.updateScoreAnimation();
+
     // 渲染
     this._render();
 
@@ -101,6 +105,9 @@ export class Game {
     if (ateFood) {
       this.scoreManager.addScore();
       this.food.generate(this.snake.getBody());
+      // 触发食物和得分动画
+      this.renderer.triggerFoodAnimation();
+      this.renderer.triggerScoreAnimation();
     }
   }
 
@@ -113,7 +120,8 @@ export class Game {
       this.food.getPosition(),
       this.scoreManager.getScore(),
       this.scoreManager.getHighScore(),
-      this.status
+      this.status,
+      this.snake.direction
     );
   }
 

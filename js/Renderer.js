@@ -14,6 +14,20 @@ export class Renderer {
     this.canvas.height = CONFIG.CANVAS.HEIGHT;
 
     this.gridSize = CONFIG.CANVAS.GRID_SIZE;
+
+    // 动画状态
+    this.foodAnimation = {
+      active: false,
+      scale: 1,
+      alpha: 1,
+      frame: 0
+    };
+
+    this.scoreAnimation = {
+      active: false,
+      scale: 1,
+      frame: 0
+    };
   }
 
   /**
@@ -51,8 +65,9 @@ export class Renderer {
   /**
    * 绘制蛇
    * @param {Array} snakeBody - 蛇身坐标数组
+   * @param {Object} direction - 当前移动方向 {x, y}
    */
-  drawSnake(snakeBody) {
+  drawSnake(snakeBody, direction = { x: 1, y: 0 }) {
     snakeBody.forEach((segment, index) => {
       const x = segment.x * this.gridSize;
       const y = segment.y * this.gridSize;
@@ -74,70 +89,211 @@ export class Renderer {
         this.gridSize - 2
       );
 
-      // 绘制圆角效果（简化）
+      // 绘制蛇头（带方向眼睛）
       if (index === 0) {
-        this._drawSnakeHead(x, y);
+        this._drawSnakeHead(x, y, direction);
       }
     });
   }
 
   /**
-   * 绘制蛇头（添加眼睛效果）
+   * 绘制蛇头（带方向指示眼睛）
    * @param {number} x - x 坐标
    * @param {number} y - y 坐标
+   * @param {Object} direction - 移动方向 {x, y}
    */
-  _drawSnakeHead(x, y) {
-    // 简单的眼睛效果
-    const eyeSize = 3;
-    const eyeOffset = 5;
+  _drawSnakeHead(x, y, direction) {
+    const eyeSize = 4;
+    const eyeOffset = 4;
+    const pupilSize = 2;
+    const centerOffset = this.gridSize / 2;
 
+    // 眼白颜色
     this.ctx.fillStyle = '#ffffff';
 
-    // 左眼
-    this.ctx.fillRect(
-      x + eyeOffset,
-      y + eyeOffset,
-      eyeSize,
-      eyeSize
-    );
+    // 根据方向计算眼睛位置
+    let leftEyeX, leftEyeY, rightEyeX, rightEyeY;
 
-    // 右眼
-    this.ctx.fillRect(
-      x + this.gridSize - eyeOffset - eyeSize,
-      y + eyeOffset,
-      eyeSize,
-      eyeSize
-    );
+    if (direction.x === 1) { // 向右
+      leftEyeX = x + centerOffset - 1;
+      leftEyeY = y + eyeOffset;
+      rightEyeX = x + centerOffset - 1;
+      rightEyeY = y + this.gridSize - eyeOffset - eyeSize;
+    } else if (direction.x === -1) { // 向左
+      leftEyeX = x + eyeOffset;
+      leftEyeY = y + eyeOffset;
+      rightEyeX = x + eyeOffset;
+      rightEyeY = y + this.gridSize - eyeOffset - eyeSize;
+    } else if (direction.y === -1) { // 向上
+      leftEyeX = x + eyeOffset;
+      leftEyeY = y + eyeOffset;
+      rightEyeX = x + this.gridSize - eyeOffset - eyeSize;
+      rightEyeY = y + eyeOffset;
+    } else { // 向下
+      leftEyeX = x + eyeOffset;
+      leftEyeY = y + centerOffset - 1;
+      rightEyeX = x + this.gridSize - eyeOffset - eyeSize;
+      rightEyeY = y + centerOffset - 1;
+    }
+
+    // 绘制左眼
+    this.ctx.fillRect(leftEyeX, leftEyeY, eyeSize, eyeSize);
+    // 绘制右眼
+    this.ctx.fillRect(rightEyeX, rightEyeY, eyeSize, eyeSize);
+
+    // 绘制瞳孔（朝向移动方向）
+    this.ctx.fillStyle = '#000000';
+    const pupilOffset = 1;
+
+    if (direction.x === 1) { // 向右
+      this.ctx.fillRect(leftEyeX + eyeSize - pupilSize - pupilOffset, leftEyeY + pupilOffset, pupilSize, pupilSize);
+      this.ctx.fillRect(rightEyeX + eyeSize - pupilSize - pupilOffset, rightEyeY + pupilOffset, pupilSize, pupilSize);
+    } else if (direction.x === -1) { // 向左
+      this.ctx.fillRect(leftEyeX + pupilOffset, leftEyeY + pupilOffset, pupilSize, pupilSize);
+      this.ctx.fillRect(rightEyeX + pupilOffset, rightEyeY + pupilOffset, pupilSize, pupilSize);
+    } else if (direction.y === -1) { // 向上
+      this.ctx.fillRect(leftEyeX + pupilOffset, leftEyeY + pupilOffset, pupilSize, pupilSize);
+      this.ctx.fillRect(rightEyeX + pupilOffset, rightEyeY + pupilOffset, pupilSize, pupilSize);
+    } else { // 向下
+      this.ctx.fillRect(leftEyeX + pupilOffset, leftEyeY + eyeSize - pupilSize - pupilOffset, pupilSize, pupilSize);
+      this.ctx.fillRect(rightEyeX + pupilOffset, rightEyeY + eyeSize - pupilSize - pupilOffset, pupilSize, pupilSize);
+    }
   }
 
   /**
    * 绘制食物
    * @param {Object} foodPosition - 食物坐标
+   * @param {Object} animation - 食物动画状态 {active, scale, alpha, frame}
    */
-  drawFood(foodPosition) {
+  drawFood(foodPosition, animation = null) {
     const x = foodPosition.x * this.gridSize;
     const y = foodPosition.y * this.gridSize;
+
+    // 应用动画效果
+    let scale = 1;
+    let alpha = 1;
+
+    if (animation && animation.active) {
+      scale = animation.scale;
+      alpha = animation.alpha;
+    }
+
+    // 计算缩放后的尺寸
+    const centerX = x + this.gridSize / 2;
+    const centerY = y + this.gridSize / 2;
+    const radius = ((this.gridSize / 2) - 2) * scale;
+
+    this.ctx.save();
+    this.ctx.globalAlpha = alpha;
+
+    // 绘制脉冲发光效果
+    if (!animation || !animation.active) {
+      this.ctx.shadowBlur = 10;
+      this.ctx.shadowColor = CONFIG.COLORS.FOOD;
+    }
 
     this.ctx.fillStyle = CONFIG.COLORS.FOOD;
 
     // 绘制圆形食物
-    const centerX = x + this.gridSize / 2;
-    const centerY = y + this.gridSize / 2;
-    const radius = (this.gridSize / 2) - 2;
-
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     this.ctx.fill();
+
+    this.ctx.restore();
+  }
+
+  /**
+   * 触发食物被吃动画
+   */
+  triggerFoodAnimation() {
+    this.foodAnimation = {
+      active: true,
+      scale: 1.5,
+      alpha: 1,
+      frame: 0
+    };
+  }
+
+  /**
+   * 更新食物动画
+   * @returns {boolean} 动画是否结束
+   */
+  updateFoodAnimation() {
+    if (!this.foodAnimation.active) return true;
+
+    this.foodAnimation.frame++;
+
+    // 动画：缩放放大然后缩小，透明度降低
+    if (this.foodAnimation.frame < 5) {
+      this.foodAnimation.scale = 1 + this.foodAnimation.frame * 0.2;
+    } else if (this.foodAnimation.frame < 15) {
+      this.foodAnimation.scale = 1.8 - (this.foodAnimation.frame - 5) * 0.15;
+      this.foodAnimation.alpha = 1 - (this.foodAnimation.frame - 5) * 0.1;
+    } else {
+      this.foodAnimation.active = false;
+      this.foodAnimation.scale = 1;
+      this.foodAnimation.alpha = 1;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * 触发得分动画
+   */
+  triggerScoreAnimation() {
+    this.scoreAnimation = {
+      active: true,
+      scale: 1.5,
+      frame: 0
+    };
+  }
+
+  /**
+   * 更新得分动画
+   * @returns {boolean} 动画是否结束
+   */
+  updateScoreAnimation() {
+    if (!this.scoreAnimation.active) return true;
+
+    this.scoreAnimation.frame++;
+
+    // 弹跳动画：放大后恢复
+    if (this.scoreAnimation.frame < 10) {
+      this.scoreAnimation.scale = 1 + Math.sin(this.scoreAnimation.frame * Math.PI / 10) * 0.3;
+    } else {
+      this.scoreAnimation.active = false;
+      this.scoreAnimation.scale = 1;
+      return true;
+    }
+
+    return false;
   }
 
   /**
    * 绘制分数
    * @param {number} score - 当前分数
    * @param {number} highScore - 最高分
+   * @param {Object} animation - 得分动画状态 {active, scale, frame}
    */
-  drawScore(score, highScore) {
-    this.ctx.fillStyle = CONFIG.COLORS.TEXT;
-    this.ctx.font = '20px Arial';
+  drawScore(score, highScore, animation = null) {
+    let scale = 1;
+    let textColor = CONFIG.COLORS.TEXT;
+
+    if (animation && animation.active) {
+      scale = animation.scale;
+      // 动画时颜色闪烁
+      textColor = animation.frame % 4 < 2 ? '#00ff00' : CONFIG.COLORS.TEXT;
+    }
+
+    this.ctx.save();
+    this.ctx.fillStyle = textColor;
+
+    // 应用缩放
+    const baseFontSize = 20;
+    const fontSize = baseFontSize * scale;
+    this.ctx.font = `${fontSize}px Arial`;
     this.ctx.textAlign = 'left';
 
     // 当前分数
@@ -145,7 +301,11 @@ export class Renderer {
 
     // 最高分
     this.ctx.textAlign = 'right';
+    this.ctx.font = `${baseFontSize}px Arial`;
+    this.ctx.fillStyle = CONFIG.COLORS.TEXT;
     this.ctx.fillText(`最高分: ${highScore}`, this.canvas.width - 10, 30);
+
+    this.ctx.restore();
   }
 
   /**
@@ -201,13 +361,14 @@ export class Renderer {
    * @param {number} score - 当前分数
    * @param {number} highScore - 最高分
    * @param {string} status - 游戏状态
+   * @param {Object} direction - 蛇移动方向
    */
-  render(snakeBody, foodPosition, score, highScore, status) {
+  render(snakeBody, foodPosition, score, highScore, status, direction = { x: 1, y: 0 }) {
     this.clear();
     this.drawGrid();
-    this.drawSnake(snakeBody);
-    this.drawFood(foodPosition);
-    this.drawScore(score, highScore);
+    this.drawSnake(snakeBody, direction);
+    this.drawFood(foodPosition, this.foodAnimation);
+    this.drawScore(score, highScore, this.scoreAnimation);
 
     // 根据状态绘制额外内容
     if (status === 'paused') {
