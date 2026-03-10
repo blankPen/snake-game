@@ -1,6 +1,6 @@
 # TODO_LIST.md - Snake Game 项目待办列表
 
-> 最后更新: 2026-03-10 20:11
+> 最后更新: 2026-03-10 20:35
 
 ## 项目状态: ✅ v1.1.0 已发布
 
@@ -46,12 +46,14 @@
 
 ---
 
-## 待开发功能（22 个 Open Issues）
+## 待开发功能（25 个 Open Issues）
 
 ### 高优先级 (P0-P1)
 
 | Issue | 功能 | 标签 | 状态 |
 |-------|------|------|------|
+| #61 | 优化分数更新机制（事件驱动） | enhancement, performance | 待开发 |
+| #60 | 统一 Game.js 渲染逻辑 | enhancement | 待开发 |
 | #50 | 事件总线架构重构 | refactor | 🔄 Arch 设计方案中 |
 | #58 | 移动端触摸控制优化 | enhancement | 🔄 开发中 (Beta) |
 | #41 | 渲染性能优化 | enhancement | 待开发 (Alpha) |
@@ -62,6 +64,7 @@
 
 | Issue | 功能 | 标签 | 状态 |
 |-------|------|------|------|
+| #62 | 添加游戏内帮助系统 | enhancement, feature | 待开发 |
 | #47 | AI 对手模式 | enhancement | 待开发 (Alpha) |
 | #46 | 游戏回放系统 | enhancement | 待开发 (Beta) |
 | #36 | 道具系统与关卡模式 | enhancement | 待开发 (Beta) |
@@ -76,17 +79,4 @@
 | #42 | 游戏统计功能 | enhancement | 待开发 |
 | #49 | 视觉反馈与特效系统 | enhancement | 待开发 |
 | #48 | 游戏过程数据记录系统 | enhancement | 待开发 |
-| #43 | 修复 gameLoop 时间计算 | bug | ✅ 已修复 |
-| #33 | InputHandler 回调不匹配 | bug | ✅ 已修复 |
-
----
-
-## 团队任务分配
-
-| 成员 | 活跃任务数 | 当前工作 |
-|------|-----------|----------|
-| Alpha | 2 | 每日挑战模式、文档 |
-| Beta | 3 | 速度渐变、动画效果、移动端优化 |
-| Arch | 1 | 事件总线架构设计 |
-| QA | 0 | - |
-| Ops | 2 | ESLint CI、GitHub Actions |
+| #40 | 动画效果 | enhancement | 🔄 开发中 (Beta) |
