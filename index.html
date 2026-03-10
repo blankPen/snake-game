@@ -10,6 +10,13 @@
   <div class="container">
     <header class="game-header">
       <h1>🐍 贪吃蛇</h1>
+      <div class="sound-toggle">
+        <label class="switch">
+          <input type="checkbox" id="soundToggle" checked>
+          <span class="slider"></span>
+        </label>
+        <span class="sound-label">🔊 音效</span>
+      </div>
       <div class="difficulty-selector">
         <span class="label">难度:</span>
         <button class="difficulty-btn" data-difficulty="easy">简单</button>
@@ -81,6 +88,16 @@
     const difficultyBtns = document.querySelectorAll('.difficulty-btn');
     const currentScoreEl = document.getElementById('currentScore');
     const highScoreEl = document.getElementById('highScore');
+    const soundToggle = document.getElementById('soundToggle');
+
+    // 音效开关
+    const soundManager = game.getSoundManager();
+    soundManager.loadSettings();
+    soundToggle.checked = soundManager.isEnabled();
+    
+    soundToggle.addEventListener('change', (e) => {
+      soundManager.setEnabled(e.target.checked);
+    });
 
     // 开始游戏
     startBtn.addEventListener('click', () => {

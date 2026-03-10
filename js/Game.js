@@ -3,6 +3,7 @@ import { Snake } from './Snake.js';
 import { Food } from './Food.js';
 import { InputHandler } from './InputHandler.js';
 import { ScoreManager } from './ScoreManager.js';
+import { PowerUpManager, POWERUP_TYPES } from './PowerUp.js';
 
 /**
  * 游戏主类
@@ -14,6 +15,7 @@ export class Game {
     this.status = 'start'; // start, playing, paused, gameover
     this.lastTime = 0;
     this.accumulatedTime = 0;
+    this.gameStartTime = 0;
 
     // 初始化各个子系统
     this.renderer = new Renderer('gameCanvas');
@@ -21,6 +23,18 @@ export class Game {
     this.food = new Food();
     this.inputHandler = new InputHandler();
     this.scoreManager = new ScoreManager();
+    this.powerUpManager = new PowerUpManager();
+
+    // 道具生成计时器
+    this.powerUpSpawnTimer = 0;
+
+    // 游戏统计
+    this.stats = {
+      foodEaten: 0,
+      maxLength: 3,
+      totalMoves: 0,
+      gameDuration: 0
+    };
 
     // 设置回调
     this._setupCallbacks();
@@ -45,6 +59,7 @@ export class Game {
     if (this.status === 'start') {
       this.status = 'playing';
       this.lastTime = performance.now();
+      this.gameStartTime = this.lastTime;
       this.gameLoop();
     }
   }
@@ -61,13 +76,33 @@ export class Game {
     const deltaTime = timestamp - this.lastTime;
     this.lastTime = timestamp;
 
-    const speed = this.scoreManager.getDifficultyConfig().speed;
+    // 获取基础速度并应用道具效果
+    const baseSpeed = this.scoreManager.getDifficultyConfig().speed;
+    const speedMultiplier = this.powerUpManager.getSpeedMultiplier();
+    const speed = baseSpeed / speedMultiplier;
+
     this.accumulatedTime += deltaTime;
+
+    // 更新道具管理器（生成道具、更新时间等）
+    this.powerUpManager.update(deltaTime);
+
+    // 尝试生成道具
+    this.powerUpSpawnTimer += deltaTime;
+    const spawnInterval = 10000; // 10秒生成一次道具
+    if (this.powerUpSpawnTimer >= spawnInterval) {
+      this.powerUpSpawnTimer = 0;
+      this.powerUpManager.spawn(this.snake.getBody(), this.food.getPosition());
+    }
 
     // 根据速度更新游戏
     while (this.accumulatedTime >= speed) {
       this.update();
       this.accumulatedTime -= speed;
+    }
+
+    // 更新游戏时长
+    if (this.gameStartTime > 0) {
+      this.stats.gameDuration = timestamp - this.gameStartTime;
     }
 
     // 渲染
@@ -91,16 +126,39 @@ export class Game {
     const ateFood = this.snake.checkEatFood(this.food.getPosition());
     this.snake.move(ateFood);
 
+    // 增加移动计数
+    this.stats.totalMoves++;
+
+    // 检查是否有无敌/穿墙效果
+    const hasInvincible = this.powerUpManager.hasInvincibleEffect();
+
     // 检查碰撞
-    if (this.snake.checkCollisionWall() || this.snake.checkCollisionSelf()) {
+    if (!hasInvincible && (this.snake.checkCollisionWall() || this.snake.checkCollisionSelf())) {
       this.gameOver();
       return;
     }
 
     // 处理吃食物
     if (ateFood) {
-      this.scoreManager.addScore();
+      // 检查双倍分数效果
+      const doubleScore = this.powerUpManager.hasDoubleScoreEffect();
+      const points = doubleScore ? 2 : 1;
+      this.scoreManager.addScore(points);
       this.food.generate(this.snake.getBody());
+      
+      // 更新统计
+      this.stats.foodEaten++;
+      if (this.snake.getBody().length > this.stats.maxLength) {
+        this.stats.maxLength = this.snake.getBody().length;
+      }
+    }
+
+    // 检查是否吃到道具
+    const headPosition = this.snake.getHead();
+    const collectedType = this.powerUpManager.checkCollection(headPosition);
+    if (collectedType) {
+      console.log(`Collected powerup: ${collectedType}`);
+      // 可以添加音效或其他效果
     }
   }
 
@@ -113,7 +171,10 @@ export class Game {
       this.food.getPosition(),
       this.scoreManager.getScore(),
       this.scoreManager.getHighScore(),
-      this.status
+      this.status,
+      this.powerUpManager.getPowerUp(),
+      this.powerUpManager.getEffectsInfo(),
+      null
     );
   }
 
@@ -159,6 +220,17 @@ export class Game {
     this.scoreManager.resetScore();
     // 生成新食物
     this.food.generate(this.snake.getBody());
+    // 重置道具系统
+    this.powerUpManager.reset();
+    this.powerUpSpawnTimer = 0;
+    // 重置统计
+    this.stats = {
+      foodEaten: 0,
+      maxLength: 3,
+      totalMoves: 0,
+      gameDuration: 0
+    };
+    this.gameStartTime = performance.now();
     // 重置状态
     this.status = 'playing';
     this.lastTime = performance.now();
