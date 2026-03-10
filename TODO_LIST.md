@@ -60,6 +60,8 @@
 | #55 | 每日挑战模式 | enhancement | 🔄 开发中 (Alpha) |
 | #44 | ESLint 代码检查与 CI 自动化 | enhancement | 待开发 (Ops) |
 
+| #65 | 移动端手势滑动控制 | enhancement | 待开发 (Beta) |
+
 ### 中优先级 (P2)
 
 | Issue | 功能 | 标签 | 状态 |
