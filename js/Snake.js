@@ -133,6 +133,18 @@ export class Snake {
   }
 
   /**
+   * 获取当前方向名称
+   * @returns {string} 方向名称 (UP, DOWN, LEFT, RIGHT)
+   */
+  getDirectionName() {
+    if (this.direction.x === 0 && this.direction.y === -1) return 'UP';
+    if (this.direction.x === 0 && this.direction.y === 1) return 'DOWN';
+    if (this.direction.x === -1 && this.direction.y === 0) return 'LEFT';
+    if (this.direction.x === 1 && this.direction.y === 0) return 'RIGHT';
+    return 'RIGHT';
+  }
+
+  /**
    * 重置蛇
    */
   reset() {

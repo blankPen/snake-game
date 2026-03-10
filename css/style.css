@@ -305,3 +305,77 @@ kbd {
 .pulse {
   animation: pulse 2s ease-in-out infinite;
 }
+
+/* 分数弹跳动画 */
+@keyframes scoreBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.score-bounce {
+  animation: scoreBounce 0.3s ease-out;
+}
+
+/* 屏幕震动动画 */
+@keyframes screenShake {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5px, -5px);
+  }
+  20% {
+    transform: translate(5px, -5px);
+  }
+  30% {
+    transform: translate(-5px, 5px);
+  }
+  40% {
+    transform: translate(5px, 5px);
+  }
+  50% {
+    transform: translate(-3px, -3px);
+  }
+  60% {
+    transform: translate(3px, -3px);
+  }
+  70% {
+    transform: translate(-3px, 3px);
+  }
+  80% {
+    transform: translate(3px, 3px);
+  }
+  90% {
+    transform: translate(-1px, -1px);
+  }
+}
+
+.screen-shake {
+  animation: screenShake 0.5s ease-out;
+}
+
+/* 渐变背景动画 */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-background {
+  background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e);
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+}
