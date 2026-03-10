@@ -47,12 +47,14 @@
 
 ---
 
-## 待开发功能（24 个 Open Issues）
+## 待开发功能（26 个 Open Issues）
 
 ### 高优先级 (P0-P1)
 
 | Issue | 功能 | 标签 | 状态 |
 |-------|------|------|------|
+| #69 | 无障碍访问支持 | enhancement | 待开发 |
+| #67 | 连击系统 (Combo) | feature | 待开发 |
 | #61 | 优化分数更新机制（事件驱动） | enhancement, performance | 待开发 |
 | #60 | 统一 Game.js 渲染逻辑 | enhancement | 待开发 |
 | #50 | 事件总线架构重构 | refactor | 🔄 Arch 设计方案中 |
