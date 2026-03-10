@@ -81,6 +81,9 @@ export class Game {
    * 更新游戏状态
    */
   update() {
+    // 获取当前方向用于速度线效果
+    const currentDirection = this.snake.getDirectionName();
+    
     // 处理输入方向
     const newDirection = this.inputHandler.getNextDirection();
     if (newDirection) {
@@ -101,6 +104,14 @@ export class Game {
     if (ateFood) {
       this.scoreManager.addScore();
       this.food.generate(this.snake.getBody());
+      
+      // 触发吃食物视觉特效
+      this.renderer.triggerEatFoodEffect(this.food.getPosition());
+      
+      // 检查是否加速（每5分加速一次）
+      if (this.scoreManager.getScore() % 5 === 0) {
+        this.renderer.triggerSpeedLines(this.snake.getDirectionName());
+      }
     }
   }
 
@@ -124,6 +135,7 @@ export class Game {
     if (this.status === 'playing') {
       this.status = 'paused';
       this.inputHandler.setPaused(true);
+      this.renderer.setPaused(true);
       this._render();
     }
   }
@@ -135,6 +147,7 @@ export class Game {
     if (this.status === 'paused') {
       this.status = 'playing';
       this.inputHandler.setPaused(false);
+      this.renderer.setPaused(false);
       this.lastTime = performance.now();
       this.accumulatedTime = 0;
       this.gameLoop();
@@ -146,6 +159,8 @@ export class Game {
    */
   gameOver() {
     this.status = 'gameover';
+    this.renderer.setGameOver();
+    this.renderer.triggerGameOverShake();
     this._render();
   }
 
@@ -159,6 +174,8 @@ export class Game {
     this.scoreManager.resetScore();
     // 生成新食物
     this.food.generate(this.snake.getBody());
+    // 重置渲染器状态
+    this.renderer.setPlaying();
     // 重置状态
     this.status = 'playing';
     this.lastTime = performance.now();
