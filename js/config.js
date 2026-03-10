@@ -58,5 +58,7 @@ export const DEFAULT_DIFFICULTY = 'normal';
 
 // 本地存储键名
 export const STORAGE_KEYS = {
-  HIGH_SCORE: 'snake_game_high_score'
+  HIGH_SCORE: 'snake_game_high_score',
+  ACHIEVEMENTS: 'snake_game_achievements',
+  GAME_STATS: 'snake_game_stats'
 };
