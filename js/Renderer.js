@@ -217,3 +217,6 @@ export class Renderer {
     }
   }
 }
+
+// 导出为全局变量保持向后兼容
+window.Renderer = Renderer;
