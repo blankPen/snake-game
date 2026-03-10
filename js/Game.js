@@ -3,6 +3,7 @@ import { Snake } from './Snake.js';
 import { Food } from './Food.js';
 import { InputHandler } from './InputHandler.js';
 import { ScoreManager } from './ScoreManager.js';
+import { SoundManager } from './SoundManager.js';
 
 /**
  * 游戏主类
@@ -21,6 +22,8 @@ export class Game {
     this.food = new Food();
     this.inputHandler = new InputHandler();
     this.scoreManager = new ScoreManager();
+    this.soundManager = new SoundManager();
+    this.soundManager.loadSettings();
 
     // 设置回调
     this._setupCallbacks();
@@ -45,6 +48,9 @@ export class Game {
     if (this.status === 'start') {
       this.status = 'playing';
       this.lastTime = performance.now();
+      this.scoreManager.startStats();
+      this.soundManager.init();
+      this.soundManager.playStart();
       this.gameLoop();
     }
   }
@@ -91,6 +97,10 @@ export class Game {
     const ateFood = this.snake.checkEatFood(this.food.getPosition());
     this.snake.move(ateFood);
 
+    // 更新统计数据
+    this.scoreManager.incrementMoves();
+    this.scoreManager.updateMaxLength(this.snake.getBody().length);
+
     // 检查碰撞
     if (this.snake.checkCollisionWall() || this.snake.checkCollisionSelf()) {
       this.gameOver();
@@ -100,20 +110,24 @@ export class Game {
     // 处理吃食物
     if (ateFood) {
       this.scoreManager.addScore();
+      this.scoreManager.incrementFoodEaten();
       this.food.generate(this.snake.getBody());
+      this.soundManager.playEatFood();
     }
   }
 
   /**
    * 渲染游戏画面
+   * @param {Object} stats - 游戏统计数据（可选）
    */
-  _render() {
+  _render(stats = null) {
     this.renderer.render(
       this.snake.getBody(),
       this.food.getPosition(),
       this.scoreManager.getScore(),
       this.scoreManager.getHighScore(),
-      this.status
+      this.status,
+      stats
     );
   }
 
@@ -124,6 +138,7 @@ export class Game {
     if (this.status === 'playing') {
       this.status = 'paused';
       this.inputHandler.setPaused(true);
+      this.soundManager.playPause();
       this._render();
     }
   }
@@ -135,6 +150,7 @@ export class Game {
     if (this.status === 'paused') {
       this.status = 'playing';
       this.inputHandler.setPaused(false);
+      this.soundManager.playResume();
       this.lastTime = performance.now();
       this.accumulatedTime = 0;
       this.gameLoop();
@@ -146,7 +162,10 @@ export class Game {
    */
   gameOver() {
     this.status = 'gameover';
-    this._render();
+    this.soundManager.playGameOver();
+    // 结束统计并获取数据
+    const stats = this.scoreManager.endStats();
+    this._render(stats);
   }
 
   /**
@@ -157,6 +176,8 @@ export class Game {
     this.snake.reset();
     // 重置分数
     this.scoreManager.resetScore();
+    // 重置统计
+    this.scoreManager.startStats();
     // 生成新食物
     this.food.generate(this.snake.getBody());
     // 重置状态
@@ -185,6 +206,14 @@ export class Game {
    */
   getStatus() {
     return this.status;
+  }
+
+  /**
+   * 获取音效管理器
+   * @returns {SoundManager} 音效管理器
+   */
+  getSoundManager() {
+    return this.soundManager;
   }
 
   /**

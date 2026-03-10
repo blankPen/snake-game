@@ -10,6 +10,15 @@ export class ScoreManager {
     this.highScore = this._loadHighScore();
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
+    
+    // 游戏统计数据
+    this.stats = {
+      gameDuration: 0,      // 游戏时长（毫秒）
+      foodEaten: 0,         // 吃到食物数量
+      maxLength: 0,         // 蛇的最大长度
+      totalMoves: 0,        // 总移动次数
+      startTime: 0          // 游戏开始时间
+    };
   }
 
   /**
@@ -124,5 +133,86 @@ export class ScoreManager {
    */
   getFoodValue() {
     return this.foodValue;
+  }
+
+  // ==================== 游戏统计功能 ====================
+
+  /**
+   * 开始游戏统计
+   */
+  startStats() {
+    this.stats = {
+      gameDuration: 0,
+      foodEaten: 0,
+      maxLength: 1,
+      totalMoves: 0,
+      startTime: Date.now()
+    };
+  }
+
+  /**
+   * 增加食物计数
+   */
+  incrementFoodEaten() {
+    this.stats.foodEaten++;
+  }
+
+  /**
+   * 更新最大长度
+   * @param {number} length - 当前长度
+   */
+  updateMaxLength(length) {
+    if (length > this.stats.maxLength) {
+      this.stats.maxLength = length;
+    }
+  }
+
+  /**
+   * 增加移动次数
+   */
+  incrementMoves() {
+    this.stats.totalMoves++;
+  }
+
+  /**
+   * 结束游戏统计
+   * @returns {Object} 统计数据对象
+   */
+  endStats() {
+    this.stats.gameDuration = Date.now() - this.stats.startTime;
+    return this.getStats();
+  }
+
+  /**
+   * 获取统计数据
+   * @returns {Object} 统计数据副本
+   */
+  getStats() {
+    return { ...this.stats };
+  }
+
+  /**
+   * 格式化游戏时长
+   * @param {number} ms - 毫秒
+   * @returns {string} 格式化的时间字符串
+   */
+  formatDuration(ms) {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (minutes > 0) {
+      return `${minutes}分${remainingSeconds}秒`;
+    }
+    return `${seconds}秒`;
+  }
+
+  /**
+   * 计算平均速度（每秒移动次数）
+   * @returns {number} 每秒移动次数
+   */
+  getAverageSpeed() {
+    if (this.stats.gameDuration === 0) return 0;
+    return (this.stats.totalMoves / (this.stats.gameDuration / 1000)).toFixed(1);
   }
 }

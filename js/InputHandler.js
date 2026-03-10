@@ -176,8 +176,17 @@ export class InputHandler {
    * @param {Function} callback - 回调函数
    */
   on(event, callback) {
-    if (this.callbacks.hasOwnProperty(`on${event.charAt(0).toUpperCase() + event.slice(1)}`)) {
-      this.callbacks[`on${event.charAt(0).toUpperCase() + event.slice(1)}`] = callback;
+    const eventMap = {
+      'pause': 'onPause',
+      'resume': 'onResume',
+      'restart': 'onRestart',
+      'togglePause': 'onTogglePause',
+      'directionChange': 'onDirectionChange'
+    };
+    
+    const callbackKey = eventMap[event];
+    if (callbackKey && this.callbacks.hasOwnProperty(callbackKey)) {
+      this.callbacks[callbackKey] = callback;
     }
   }
 
