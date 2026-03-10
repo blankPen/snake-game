@@ -3,6 +3,7 @@ import { Snake } from './Snake.js';
 import { Food } from './Food.js';
 import { InputHandler } from './InputHandler.js';
 import { ScoreManager } from './ScoreManager.js';
+import { AnimationManager } from './AnimationManager.js';
 
 /**
  * 游戏主类
@@ -17,6 +18,8 @@ export class Game {
 
     // 初始化各个子系统
     this.renderer = new Renderer('gameCanvas');
+    this.animationManager = new AnimationManager();
+    this.renderer.setAnimationManager(this.animationManager);
     this.snake = new Snake();
     this.food = new Food();
     this.inputHandler = new InputHandler();
@@ -61,7 +64,8 @@ export class Game {
     const deltaTime = timestamp - this.lastTime;
     this.lastTime = timestamp;
 
-    const speed = this.scoreManager.getDifficultyConfig().speed;
+    // 使用动态速度（根据分数计算）
+    const speed = this.scoreManager.getCurrentInterval();
     this.accumulatedTime += deltaTime;
 
     // 根据速度更新游戏
@@ -69,6 +73,9 @@ export class Game {
       this.update();
       this.accumulatedTime -= speed;
     }
+
+    // 更新动画
+    this.animationManager.update(deltaTime);
 
     // 渲染
     this._render();
@@ -99,8 +106,16 @@ export class Game {
 
     // 处理吃食物
     if (ateFood) {
-      this.scoreManager.addScore();
+      const scoreResult = this.scoreManager.addScore();
+      const foodPos = this.food.getPosition();
+      
+      // 触发动画
+      this.animationManager.triggerFoodEaten(foodPos);
+      this.animationManager.triggerScorePopup(foodPos, scoreResult.added);
+      
+      // 生成新食物并触发动画
       this.food.generate(this.snake.getBody());
+      this.animationManager.triggerFoodAppear(this.food.getPosition());
     }
   }
 
@@ -108,12 +123,17 @@ export class Game {
    * 渲染游戏画面
    */
   _render() {
+    const speedLevel = this.scoreManager.getSpeedLevel();
+    const maxLevel = this.scoreManager.getMaxLevel();
+    
     this.renderer.render(
       this.snake.getBody(),
       this.food.getPosition(),
       this.scoreManager.getScore(),
       this.scoreManager.getHighScore(),
-      this.status
+      this.status,
+      speedLevel,
+      maxLevel
     );
   }
 
@@ -146,6 +166,8 @@ export class Game {
    */
   gameOver() {
     this.status = 'gameover';
+    // 触发屏幕抖动动画
+    this.animationManager.triggerScreenShake();
     this._render();
   }
 
@@ -192,44 +214,7 @@ export class Game {
    */
   showStartScreen() {
     this.status = 'start';
-    this._renderStartScreen();
-  }
-
-  /**
-   * 渲染开始界面
-   */
-  _renderStartScreen() {
-    const ctx = this.renderer.ctx;
-    const canvas = this.renderer.canvas;
-
-    // 清空画布
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 标题
-    ctx.fillStyle = '#00ff00';
-    ctx.font = 'bold 60px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('🐍 贪吃蛇', canvas.width / 2, canvas.height / 2 - 80);
-
-    // 最高分
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '24px Arial';
-    ctx.fillText(`最高分: ${this.scoreManager.getHighScore()}`, canvas.width / 2, canvas.height / 2);
-
-    // 难度选择提示
-    ctx.font = '18px Arial';
-    ctx.fillStyle = '#aaaaaa';
-    ctx.fillText('选择难度:', canvas.width / 2, canvas.height / 2 + 60);
-
-    // 难度按钮
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('[1] 简单  [2] 普通  [3] 困难', canvas.width / 2, canvas.height / 2 + 100);
-
-    // 开始提示
-    ctx.fillStyle = '#00ff00';
-    ctx.font = '20px Arial';
-    ctx.fillText('按空格键开始游戏', canvas.width / 2, canvas.height / 2 + 160);
+    this._render();
   }
 }
 

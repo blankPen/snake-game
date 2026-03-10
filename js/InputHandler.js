@@ -49,7 +49,8 @@ export class InputHandler {
   _initTouch() {
     let touchStartX = 0;
     let touchStartY = 0;
-    const MIN_SWIPE_DISTANCE = 30;
+    // 滑动灵敏度 30-50px，实测调整
+    const MIN_SWIPE_DISTANCE = 40;
 
     document.addEventListener('touchstart', (e) => {
       touchStartX = e.touches[0].clientX;

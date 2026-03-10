@@ -2,7 +2,7 @@ import { CONFIG, DEFAULT_DIFFICULTY, STORAGE_KEYS } from './config.js';
 
 /**
  * 分数和难度管理器
- * 处理分数统计、最高分记录和难度切换
+ * 处理分数统计、最高分记录、难度切换和速度等级计算
  */
 export class ScoreManager {
   constructor() {
@@ -10,6 +10,7 @@ export class ScoreManager {
     this.highScore = this._loadHighScore();
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
+    this.foodsEaten = 0; // 吃到的食物数量（用于计算速度等级）
   }
 
   /**
@@ -39,15 +40,64 @@ export class ScoreManager {
 
   /**
    * 增加分数（吃食物）
+   * @returns {number} 本次增加的分数值
    */
   addScore() {
-    this.currentScore += this.foodValue;
+    const scoreToAdd = this.foodValue;
+    this.currentScore += scoreToAdd;
+    this.foodsEaten++;
 
     // 检查是否刷新最高分
     if (this.currentScore > this.highScore) {
       this.highScore = this.currentScore;
       this._saveHighScore();
+      return { added: scoreToAdd, isNewHighScore: true, total: this.currentScore };
     }
+    
+    return { added: scoreToAdd, isNewHighScore: false, total: this.currentScore };
+  }
+
+  /**
+   * 获取当前速度等级
+   * @returns {number} 当前速度等级（1~MAX_LEVEL）
+   */
+  getSpeedLevel() {
+    const { FOODS_PER_LEVEL, MAX_LEVEL } = CONFIG.SPEED_SYSTEM;
+    const level = Math.floor(this.foodsEaten / FOODS_PER_LEVEL) + 1;
+    return Math.min(level, MAX_LEVEL);
+  }
+
+  /**
+   * 获取当前游戏速度间隔
+   * @returns {number} 当前速度间隔（毫秒）
+   */
+  getCurrentInterval() {
+    const baseSpeed = this.getDifficultyConfig().speed;
+    const { SPEED_STEP, MIN_INTERVAL, MAX_LEVEL } = CONFIG.SPEED_SYSTEM;
+    const level = this.getSpeedLevel();
+    
+    // 速度公式: interval = baseInterval - (level * step)
+    const interval = baseSpeed - ((level - 1) * SPEED_STEP);
+    return Math.max(interval, MIN_INTERVAL);
+  }
+
+  /**
+   * 获取最大速度等级
+   * @returns {number} 最大速度等级
+   */
+  getMaxLevel() {
+    return CONFIG.SPEED_SYSTEM.MAX_LEVEL;
+  }
+
+  /**
+   * 获取速度进度（0~1）
+   * @returns {number} 当前等级进度
+   */
+  getSpeedProgress() {
+    const { FOODS_PER_LEVEL, MAX_LEVEL } = CONFIG.SPEED_SYSTEM;
+    const currentLevel = this.getSpeedLevel();
+    const foodsInCurrentLevel = this.foodsEaten % FOODS_PER_LEVEL;
+    return foodsInCurrentLevel / FOODS_PER_LEVEL;
   }
 
   /**
@@ -71,6 +121,7 @@ export class ScoreManager {
    */
   resetScore() {
     this.currentScore = 0;
+    this.foodsEaten = 0;
   }
 
   /**
