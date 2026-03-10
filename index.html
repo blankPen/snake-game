@@ -61,7 +61,37 @@
       <button id="startBtn" class="btn btn-primary">开始游戏</button>
       <button id="pauseBtn" class="btn btn-secondary">暂停</button>
       <button id="restartBtn" class="btn btn-warning">重新开始</button>
+      <button id="helpBtn" class="btn btn-info">帮助</button>
     </footer>
+  </div>
+
+  <!-- 帮助面板 -->
+  <div id="helpOverlay" class="help-overlay">
+    <div class="help-panel">
+      <div class="help-header">
+        <h2>🎮 操作说明</h2>
+        <button id="helpCloseBtn" class="help-close-btn">&times;</button>
+      </div>
+      <div class="help-content">
+        <div class="help-section">
+          <h3>⌨️ 键盘控制</h3>
+          <ul class="help-list">
+            <li><kbd>↑</kbd> / <kbd>W</kbd> - 向上移动</li>
+            <li><kbd>↓</kbd> / <kbd>S</kbd> - 向下移动</li>
+            <li><kbd>←</kbd> / <kbd>A</kbd> - 向左移动</li>
+            <li><kbd>→</kbd> / <kbd>D</kbd> - 向右移动</li>
+            <li><kbd>空格</kbd> - 暂停/继续</li>
+            <li><kbd>R</kbd> - 重新开始</li>
+            <li><kbd>H</kbd> - 打开/关闭帮助</li>
+            <li><kbd>ESC</kbd> - 关闭帮助面板</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h3>📱 触屏操作</h3>
+          <p>在画布上滑动即可控制蛇的移动方向</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 游戏脚本 -->
@@ -78,9 +108,31 @@
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const restartBtn = document.getElementById('restartBtn');
+    const helpBtn = document.getElementById('helpBtn');
+    const helpOverlay = document.getElementById('helpOverlay');
+    const helpCloseBtn = document.getElementById('helpCloseBtn');
     const difficultyBtns = document.querySelectorAll('.difficulty-btn');
     const currentScoreEl = document.getElementById('currentScore');
     const highScoreEl = document.getElementById('highScore');
+
+    // 切换帮助面板显示状态
+    function toggleHelp() {
+      const isHidden = helpOverlay.style.display === 'none' || helpOverlay.style.display === '';
+      helpOverlay.style.display = isHidden ? 'flex' : 'none';
+    }
+
+    // 帮助按钮点击事件
+    helpBtn.addEventListener('click', toggleHelp);
+
+    // 帮助面板关闭按钮点击事件
+    helpCloseBtn.addEventListener('click', toggleHelp);
+
+    // 点击遮罩层关闭帮助
+    helpOverlay.addEventListener('click', (e) => {
+      if (e.target === helpOverlay) {
+        toggleHelp();
+      }
+    });
 
     // 开始游戏
     startBtn.addEventListener('click', () => {
@@ -133,6 +185,22 @@
 
     // 键盘快捷键
     document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+
+      // ESC 键关闭帮助面板
+      if (key === 'escape') {
+        if (helpOverlay.style.display === 'flex') {
+          toggleHelp();
+        }
+        return;
+      }
+
+      // H 键切换帮助面板
+      if (key === 'h') {
+        toggleHelp();
+        return;
+      }
+
       // 空格键开始/暂停
       if (e.key === ' ') {
         e.preventDefault();
