@@ -10,11 +10,14 @@
   <div class="container">
     <header class="game-header">
       <h1>🐍 贪吃蛇</h1>
-      <div class="difficulty-selector">
-        <span class="label">难度:</span>
-        <button class="difficulty-btn" data-difficulty="easy">简单</button>
-        <button class="difficulty-btn active" data-difficulty="normal">普通</button>
-        <button class="difficulty-btn" data-difficulty="hard">困难</button>
+      <div class="header-controls">
+        <button id="soundToggle" class="btn-icon" title="音效开关">🔊</button>
+        <div class="difficulty-selector">
+          <span class="label">难度:</span>
+          <button class="difficulty-btn" data-difficulty="easy">简单</button>
+          <button class="difficulty-btn active" data-difficulty="normal">普通</button>
+          <button class="difficulty-btn" data-difficulty="hard">困难</button>
+        </div>
       </div>
     </header>
 
@@ -67,9 +70,11 @@
   <!-- 游戏脚本 -->
   <script type="module">
     import { Game } from './js/Game.js';
+    import { SoundManager } from './js/SoundManager.js';
 
-    // 创建游戏实例
+    // 创建游戏和音效管理器实例
     const game = new Game();
+    const soundManager = new SoundManager();
 
     // 显示开始界面
     game.showStartScreen();
@@ -81,6 +86,22 @@
     const difficultyBtns = document.querySelectorAll('.difficulty-btn');
     const currentScoreEl = document.getElementById('currentScore');
     const highScoreEl = document.getElementById('highScore');
+    const soundToggle = document.getElementById('soundToggle');
+
+    // 首次用户交互时初始化音效
+    const initSound = () => {
+      soundManager.init();
+      document.removeEventListener('click', initSound);
+      document.removeEventListener('touchstart', initSound);
+    };
+    document.addEventListener('click', initSound);
+    document.addEventListener('touchstart', initSound);
+
+    // 音效开关
+    soundToggle.addEventListener('click', () => {
+      const enabled = soundManager.toggle();
+      soundToggle.textContent = enabled ? '🔊' : '🔇';
+    });
 
     // 开始游戏
     startBtn.addEventListener('click', () => {

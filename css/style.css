@@ -46,6 +46,36 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* 音效开关按钮 */
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  border-color: var(--primary-color);
+  transform: scale(1.1);
 }
 
 .game-header h1 {
@@ -264,19 +294,88 @@ kbd {
     gap: 15px;
     text-align: center;
   }
+
+  .header-controls {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 600px) {
   body {
-    padding: 10px;
+    padding: 8px;
+  }
+
+  .container {
+    gap: 12px;
+  }
+
+  .game-header {
+    padding: 12px;
   }
 
   .game-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
   }
 
   .difficulty-btn {
-    padding: 6px 12px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .difficulty-selector .label {
+    display: none;
+  }
+
+  .canvas-wrapper {
+    padding: 10px;
+  }
+
+  #gameCanvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    min-width: 90px;
+    touch-action: manipulation;
+  }
+
+  .game-footer {
+    padding: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .info-card {
+    min-width: 150px;
+    padding: 10px;
+  }
+
+  .info-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .info-card li {
+    font-size: 0.8rem;
+  }
+
+  .score-item .value {
+    font-size: 1.2rem;
+  }
+}
     font-size: 0.85rem;
   }
 
