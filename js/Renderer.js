@@ -131,6 +131,71 @@ export class Renderer {
   }
 
   /**
+   * 绘制道具
+   * @param {Object} powerUp - 道具对象
+   */
+  drawPowerUp(powerUp) {
+    if (!powerUp || !powerUp.getIsActive() || !powerUp.getPosition()) return;
+
+    const position = powerUp.getPosition();
+    const type = powerUp.getType();
+    const x = position.x * this.gridSize;
+    const y = position.y * this.gridSize;
+
+    // 获取道具颜色
+    const color = CONFIG.POWERUP.COLORS[type] || '#ffffff';
+    this.ctx.fillStyle = color;
+
+    // 绘制带闪烁效果的道具
+    const centerX = x + this.gridSize / 2;
+    const centerY = y + this.gridSize / 2;
+
+    // 闪烁效果
+    const lifeRatio = powerUp.getLifeRatio();
+    const alpha = 0.5 + 0.5 * Math.sin(Date.now() / 100) * lifeRatio;
+    this.ctx.globalAlpha = alpha;
+
+    // 绘制菱形道具
+    this.ctx.beginPath();
+    this.ctx.moveTo(centerX, y + 2);
+    this.ctx.lineTo(x + this.gridSize - 2, centerY);
+    this.ctx.lineTo(centerX, y + this.gridSize - 2);
+    this.ctx.lineTo(x + 2, centerY);
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    // 绘制道具符号
+    this.ctx.globalAlpha = 1;
+    const symbol = CONFIG.POWERUP.SYMBOLS[type] || '?';
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.font = '10px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(symbol, centerX, centerY);
+
+    // 绘制存活时间进度条
+    this._drawPowerUpTimer(x, y, lifeRatio, color);
+  }
+
+  /**
+   * 绘制道具存活时间进度条
+   */
+  _drawPowerUpTimer(x, y, ratio, color) {
+    const barWidth = this.gridSize - 4;
+    const barHeight = 3;
+    const barX = x + 2;
+    const barY = y + this.gridSize - barHeight - 2;
+
+    // 背景
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    this.ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    // 进度
+    this.ctx.fillStyle = color;
+    this.ctx.fillRect(barX, barY, barWidth * ratio, barHeight);
+  }
+
+  /**
    * 绘制分数
    * @param {number} score - 当前分数
    * @param {number} highScore - 最高分
@@ -195,19 +260,71 @@ export class Renderer {
   }
 
   /**
+   * 绘制道具效果指示器
+   * @param {Array} effectsInfo - 效果信息数组
+   */
+  drawPowerUpEffects(effectsInfo) {
+    if (!effectsInfo || effectsInfo.length === 0) return;
+
+    let yOffset = 60;
+    const x = 10;
+
+    effectsInfo.forEach(effect => {
+      const color = CONFIG.POWERUP.COLORS[effect.type] || '#ffffff';
+      const symbol = CONFIG.POWERUP.SYMBOLS[effect.type] || '?';
+      const name = this._getEffectName(effect.type);
+
+      // 绘制效果名称
+      this.ctx.fillStyle = color;
+      this.ctx.font = '14px Arial';
+      this.ctx.textAlign = 'left';
+      this.ctx.fillText(`${symbol} ${name}`, x, yOffset);
+
+      // 绘制效果持续时间进度条
+      const barWidth = 80;
+      const barHeight = 6;
+      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      this.ctx.fillRect(x + 60, yOffset - 8, barWidth, barHeight);
+      this.ctx.fillStyle = color;
+      this.ctx.fillRect(x + 60, yOffset - 8, barWidth * effect.remainingRatio, barHeight);
+
+      yOffset += 20;
+    });
+  }
+
+  /**
+   * 获取效果名称
+   */
+  _getEffectName(type) {
+    const names = {
+      speed_up: '加速',
+      speed_down: '减速',
+      invincible: '无敌',
+      double_score: '双倍分',
+      ghost: '穿墙'
+    };
+    return names[type] || type;
+  }
+
+  /**
    * 渲染完整游戏画面
    * @param {Array} snakeBody - 蛇身
    * @param {Object} foodPosition - 食物位置
    * @param {number} score - 当前分数
    * @param {number} highScore - 最高分
    * @param {string} status - 游戏状态
+   * @param {Object} powerUp - 道具对象
+   * @param {Array} effectsInfo - 效果信息数组
+   * @param {Object} stats - 游戏统计数据（可选）
    */
-  render(snakeBody, foodPosition, score, highScore, status) {
+  render(snakeBody, foodPosition, score, highScore, status, powerUp = null, effectsInfo = [], stats = null) {
     this.clear();
     this.drawGrid();
     this.drawSnake(snakeBody);
     this.drawFood(foodPosition);
+    this.drawPowerUp(powerUp);
     this.drawScore(score, highScore);
+    this.drawPowerUpEffects(effectsInfo);
 
     // 根据状态绘制额外内容
     if (status === 'paused') {
