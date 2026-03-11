@@ -10,8 +10,17 @@ export class ScoreManager {
     this.highScore = this._loadHighScore();
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
+    this.onScoreChange = null; // 分数变化回调
     this.foodEaten = 0;  // 吃到的食物数量（用于计算速度等级）
     this.speedLevel = 0; // 当前速度等级
+  }
+
+  /**
+   * 设置分数变化回调
+   * @param {Function} callback - 回调函数，接收 {score, highScore}
+   */
+  setScoreChangeListener(callback) {
+    this.onScoreChange = callback;
   }
 
   /**
@@ -50,6 +59,14 @@ export class ScoreManager {
       this.highScore = this.currentScore;
       this._saveHighScore();
     }
+
+    // 触发分数变化回调
+    if (this.onScoreChange) {
+      this.onScoreChange({
+        score: this.currentScore,
+        highScore: this.highScore
+      });
+    }
   }
 
   /**
@@ -73,6 +90,8 @@ export class ScoreManager {
    */
   resetScore() {
     this.currentScore = 0;
+    this.foodEaten = 0;
+    this.speedLevel = 0;
   }
 
   /**
@@ -182,14 +201,5 @@ export class ScoreManager {
    */
   getSpeedPercentage() {
     return Math.round((this.speedLevel / CONFIG.SPEED_SYSTEM.MAX_LEVEL) * 100);
-  }
-
-  /**
-   * 重置分数和速度等级
-   */
-  resetScore() {
-    this.currentScore = 0;
-    this.foodEaten = 0;
-    this.speedLevel = 0;
   }
 }

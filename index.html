@@ -142,15 +142,20 @@
       });
     });
 
-    // 分数显示更新
-    const updateScoreDisplay = () => {
-      const scoreManager = game.scoreManager;
-      currentScoreEl.textContent = scoreManager.getScore();
-      highScoreEl.textContent = scoreManager.getHighScore();
+    // 分数显示更新（事件驱动）
+    const updateScoreDisplay = (data) => {
+      currentScoreEl.textContent = data.score;
+      highScoreEl.textContent = data.highScore;
     };
 
-    // 定期更新分数显示（每 100ms）
-    setInterval(updateScoreDisplay, 100);
+    // 使用事件驱动替代 setInterval 轮询
+    game.scoreManager.setScoreChangeListener(updateScoreDisplay);
+
+    // 初始显示分数
+    updateScoreDisplay({
+      score: game.scoreManager.getScore(),
+      highScore: game.scoreManager.getHighScore()
+    });
 
     // 键盘快捷键
     document.addEventListener('keydown', (e) => {
