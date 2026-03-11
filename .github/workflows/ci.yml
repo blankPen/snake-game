@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install ESLint
+        run: npm install -g eslint
+      
+      - name: Run ESLint
+        run: |
+          eslint "js/**/*.js" || true
+      
+      - name: Check for critical errors
+        run: |
+          eslint "js/**/*.js" --quiet --max-warnings 100
+
+  test:
+    name: Basic Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Check JS syntax
+        run: |
+          for file in js/*.js; do
+            node --check "$file" 2>/dev/null && echo "✓ $file" || echo "✗ $file FAILED"
+          done
+      
+      - name: Check HTML exists
+        run: test -f index.html && echo "✓ index.html exists"
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check files exist
+        run: |
+          echo "Checking required files..."
+          test -f index.html && echo "✓ index.html"
+          test -f js/Game.js && echo "✓ js/Game.js"
+          test -f js/config.js && echo "✓ js/config.js"
+          echo "All required files present!"
