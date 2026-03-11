@@ -44,7 +44,7 @@
 - [ ] 游戏内帮助系统 (Issue #62) - 进行中 (Alpha)
 - [ ] 优化分数更新机制 (Issue #61) - 进行中 (Beta)
 - [ ] 统一 Game.js 渲染逻辑 (Issue #60) - 进行中 (Beta)
-- [ ] 移动端触摸控制优化 (Issue #58) - 待分配
+- [ ] 移动端触摸控制优化 (Issue #58) - 进行中 (Beta)
 - [ ] 重构 Renderer 分离 (Issue #57) - 进行中 (Alpha)
 
 ## 里程碑
