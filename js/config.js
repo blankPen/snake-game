@@ -52,6 +52,7 @@ export const CONFIG = {
     RIGHT: { x: 1, y: 0 }
   },
 
+
   // 道具配置
   POWERUP: {
     SPAWN_INTERVAL: 10000,  // 道具生成间隔（毫秒）
@@ -77,6 +78,14 @@ export const CONFIG = {
       double_score: '✖️2',
       ghost: '👻'
     }
+
+  // 速度渐变系统配置
+  SPEED_SYSTEM: {
+    FOODS_PER_LEVEL: 3,    // 每吃 N 个食物升一级
+    MIN_INTERVAL: 30,      // 最小速度上限（毫秒）
+    SPEED_STEP: 5,         // 每级速度提升步长（毫秒）
+    MAX_LEVEL: 10          // 最大等级
+
   }
 };
 
@@ -86,4 +95,21 @@ export const DEFAULT_DIFFICULTY = 'normal';
 // 本地存储键名
 export const STORAGE_KEYS = {
   HIGH_SCORE: 'snake_game_high_score'
+};
+
+// 动画配置
+export const ANIMATION_CONFIG = {
+  ENABLED: true,
+  SMOOTH_MOVEMENT: true,           // 蛇移动平滑插值
+  FOOD_ANIMATION: true,            // 食物动画
+  SCORE_POPUP: true,               // 得分飘字
+  SCREEN_SHAKE: true,              // 屏幕抖动
+  // 时间配置（毫秒）
+  FOOD_APPEAR_DURATION: 300,
+  FOOD_EATEN_DURATION: 200,
+  SCORE_POPUP_DURATION: 1000,
+  SCORE_POPUP_OFFSET: 50,          // 得分飘字上升距离
+  SCREEN_SHAKE_DURATION: 500,
+  SCREEN_SHAKE_INTENSITY: 10,
+  FOOD_PULSE_SCALE: 1.5            // 食物脉冲缩放比例
 };
