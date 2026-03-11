@@ -92,6 +92,10 @@ export class Game {
       this.accumulatedTime -= speed;
     }
 
+    // 更新动画
+    this.renderer.updateFoodAnimation();
+    this.renderer.updateScoreAnimation();
+
     // 渲染
     this._render();
 
@@ -132,9 +136,11 @@ export class Game {
 
       // 生成新食物并触发动画
       this.food.generate(this.snake.getBody());
+      // 触发食物和得分动画
+      this.renderer.triggerFoodAnimation();
+      this.renderer.triggerScoreAnimation();
       const newFoodPos = this.food.getPosition();
       this.animationManager.createFoodAppearAnimation(newFoodPos.x, newFoodPos.y);
-
       // 触发得分飘字动画
       this.animationManager.createScorePopup(
         this.renderer.canvas.width / 2,
@@ -152,7 +158,8 @@ export class Game {
       this.food.getPosition(),
       this.scoreManager.getScore(),
       this.scoreManager.getHighScore(),
-      this.status
+      this.status,
+      this.snake.direction
     );
   }
 
