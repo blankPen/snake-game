@@ -10,6 +10,15 @@ export class ScoreManager {
     this.highScore = this._loadHighScore();
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
+    this.onScoreChange = null; // 分数变化回调
+  }
+
+  /**
+   * 设置分数变化回调
+   * @param {Function} callback - 回调函数，接收 {score, highScore}
+   */
+  setScoreChangeListener(callback) {
+    this.onScoreChange = callback;
   }
 
   /**
@@ -47,6 +56,14 @@ export class ScoreManager {
     if (this.currentScore > this.highScore) {
       this.highScore = this.currentScore;
       this._saveHighScore();
+    }
+
+    // 触发分数变化回调
+    if (this.onScoreChange) {
+      this.onScoreChange({
+        score: this.currentScore,
+        highScore: this.highScore
+      });
     }
   }
 
