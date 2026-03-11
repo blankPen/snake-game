@@ -42,6 +42,7 @@ export class Game {
     this.inputHandler.on('pause', () => this.pause());
     this.inputHandler.on('resume', () => this.resume());
     this.inputHandler.on('restart', () => this.restart());
+    this.inputHandler.on('togglePause', (isPaused) => isPaused ? this.pause() : this.resume());
   }
 
   /**
