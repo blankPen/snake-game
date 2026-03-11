@@ -38,9 +38,21 @@ export class Game {
    * 设置输入处理器回调
    */
   _setupCallbacks() {
+    this.inputHandler.on('togglePause', () => this._togglePauseHandler());
     this.inputHandler.on('pause', () => this.pause());
     this.inputHandler.on('resume', () => this.resume());
     this.inputHandler.on('restart', () => this.restart());
+  }
+
+  /**
+   * 处理暂停/继续切换
+   */
+  _togglePauseHandler() {
+    if (this.status === 'playing') {
+      this.pause();
+    } else if (this.status === 'paused') {
+      this.resume();
+    }
   }
 
   /**
