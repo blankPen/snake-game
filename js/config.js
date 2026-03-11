@@ -52,12 +52,40 @@ export const CONFIG = {
     RIGHT: { x: 1, y: 0 }
   },
 
+
+  // 道具配置
+  POWERUP: {
+    SPAWN_INTERVAL: 10000,  // 道具生成间隔（毫秒）
+    LIFE_TIME: 8000,         // 道具存活时间（毫秒）
+    EFFECT_DURATION: {
+      speed_up: 5000,        // 加速持续时间
+      speed_down: 5000,      // 减速持续时间
+      invincible: 5000,      // 无敌持续时间
+      double_score: 8000,   // 双倍分数持续时间
+      ghost: 6000            // 幽灵模式持续时间
+    },
+    COLORS: {
+      speed_up: '#ffaa00',    // 加速道具颜色（橙色）
+      speed_down: '#00aaff',  // 减速道具颜色（蓝色）
+      invincible: '#ff00ff', // 无敌道具颜色（紫色）
+      double_score: '#ffdd00', // 双倍分数颜色（金色）
+      ghost: '#aa00ff'       // 幽灵模式颜色（深紫色）
+    },
+    SYMBOLS: {
+      speed_up: '⚡',
+      speed_down: '🐢',
+      invincible: '🛡️',
+      double_score: '✖️2',
+      ghost: '👻'
+    }
+
   // 速度渐变系统配置
   SPEED_SYSTEM: {
     FOODS_PER_LEVEL: 3,    // 每吃 N 个食物升一级
     MIN_INTERVAL: 30,      // 最小速度上限（毫秒）
     SPEED_STEP: 5,         // 每级速度提升步长（毫秒）
     MAX_LEVEL: 10          // 最大等级
+
   }
 };
 
