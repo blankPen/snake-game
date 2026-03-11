@@ -63,7 +63,7 @@ export class Game {
     if (this.status === 'start') {
       this.status = 'playing';
       this.lastTime = performance.now();
-      this.gameLoop();
+      this.gameLoop(this.lastTime);
     }
   }
 
@@ -71,7 +71,7 @@ export class Game {
    * 游戏主循环
    * @param {number} timestamp - 时间戳
    */
-  gameLoop(timestamp = 0) {
+  gameLoop(timestamp) {
     if (this.status !== 'playing') {
       return;
     }
