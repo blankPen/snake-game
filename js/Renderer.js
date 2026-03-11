@@ -88,19 +88,6 @@ export class Renderer {
     // 直接拷贝预渲染的网格背景，比每次重新绘制更快
     this.ctx.drawImage(this.gridCanvas, 0, 0);
   }
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.canvas.height);
-      this.ctx.stroke();
-    }
-
-    // 水平线
-    for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.canvas.width, y);
-      this.ctx.stroke();
-    }
-  }
 
   /**
    * 绘制蛇
