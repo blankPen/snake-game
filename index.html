@@ -19,20 +19,34 @@
     </header>
 
     <main class="game-main">
+      <!-- 屏幕阅读器实时播报区域 -->
+      <div id="srLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <div id="srAnnouncer" class="sr-only" role="status"></div>
+
       <div class="canvas-wrapper">
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas"
+                role="application"
+                aria-label="贪吃蛇游戏区域，使用方向键或 WASD 控制蛇的移动"
+                aria-describedby="gameInstructions gameStatus">
+        </canvas>
+        <!-- 游戏状态描述 -->
+        <div id="gameStatus" class="sr-only">
+          当前状态: 等待开始
+        </div>
       </div>
 
-      <aside class="game-info">
+      <aside class="game-info" aria-label="游戏信息面板">
         <div class="info-card">
           <h3>🎮 操作说明</h3>
-          <ul>
+          <ul id="gameInstructions">
             <li><kbd>↑</kbd> / <kbd>W</kbd> - 向上移动</li>
             <li><kbd>↓</kbd> / <kbd>S</kbd> - 向下移动</li>
             <li><kbd>←</kbd> / <kbd>A</kbd> - 向左移动</li>
             <li><kbd>→</kbd> / <kbd>D</kbd> - 向右移动</li>
             <li><kbd>空格</kbd> - 暂停/继续</li>
             <li><kbd>R</kbd> - 重新开始</li>
+            <li><kbd>H</kbd> - 显示/隐藏帮助</li>
+            <li><kbd>Ctrl+Shift+H</kbd> - 切换高对比度模式</li>
           </ul>
         </div>
 
@@ -64,6 +78,22 @@
     </footer>
   </div>
 
+  <!-- 帮助面板 -->
+  <div id="helpPanel" class="help-panel" role="dialog" aria-labelledby="helpTitle" aria-modal="true">
+    <h2 id="helpTitle">操作帮助</h2>
+    <ul>
+      <li><span>向上移动</span><kbd>↑</kbd> / <kbd>W</kbd></li>
+      <li><span>向下移动</span><kbd>↓</kbd> / <kbd>S</kbd></li>
+      <li><span>向左移动</span><kbd>←</kbd> / <kbd>A</kbd></li>
+      <li><span>向右移动</span><kbd>→</kbd> / <kbd>D</kbd></li>
+      <li><span>开始/暂停</span><kbd>空格</kbd></li>
+      <li><span>重新开始</span><kbd>R</kbd></li>
+      <li><span>显示帮助</span><kbd>H</kbd></li>
+      <li><span>高对比度模式</span><kbd>Ctrl+Shift+H</kbd></li>
+    </ul>
+    <button id="helpCloseBtn" class="btn btn-secondary help-close-btn">关闭</button>
+  </div>
+
   <!-- 游戏脚本 -->
   <script type="module">
     import { Game } from './js/Game.js';
@@ -81,12 +111,64 @@
     const difficultyBtns = document.querySelectorAll('.difficulty-btn');
     const currentScoreEl = document.getElementById('currentScore');
     const highScoreEl = document.getElementById('highScore');
+    const srLiveRegion = document.getElementById('srLiveRegion');
+    const srAnnouncer = document.getElementById('srAnnouncer');
+    const helpPanel = document.getElementById('helpPanel');
+    const helpCloseBtn = document.getElementById('helpCloseBtn');
+
+    // 无障碍播报函数
+    function announce(message) {
+      srLiveRegion.textContent = message;
+      // 清除内容以便下次播报
+      setTimeout(() => {
+        srLiveRegion.textContent = '';
+      }, 1000);
+    }
+
+    function announceStatus(message) {
+      srAnnouncer.textContent = message;
+      setTimeout(() => {
+        srAnnouncer.textContent = '';
+      }, 1000);
+    }
+
+    // 获取食物相对于蛇头的方向描述
+    function getFoodDirection() {
+      const snakeHead = game.snake.getBody()[0];
+      const foodPos = game.food.getPosition();
+      const dx = foodPos.x - snakeHead.x;
+      const dy = foodPos.y - snakeHead.y;
+
+      let horizontal = '';
+      let vertical = '';
+
+      if (dx > 0) horizontal = '右';
+      else if (dx < 0) horizontal = '左';
+
+      if (dy > 0) vertical = '下';
+      else if (dy < 0) vertical = '上';
+
+      // 综合方向
+      if (horizontal && vertical) {
+        return vertical + horizontal;
+      } else if (horizontal) {
+        return horizontal + '方';
+      } else if (vertical) {
+        return vertical + '方';
+      }
+      return '同位置';
+    }
+
+    // 记录上一次分数，用于检测变化
+    let lastScore = 0;
 
     // 开始游戏
     startBtn.addEventListener('click', () => {
       game.start();
       startBtn.textContent = '游戏中...';
       startBtn.disabled = true;
+      announce('游戏已开始');
+      announceStatus('游戏中');
     });
 
     // 暂停/继续
@@ -95,9 +177,13 @@
       if (status === 'playing') {
         game.pause();
         pauseBtn.textContent = '继续';
+        announce('游戏已暂停');
+        announceStatus('暂停');
       } else if (status === 'paused') {
         game.resume();
         pauseBtn.textContent = '暂停';
+        announce('游戏继续');
+        announceStatus('游戏中');
       }
     });
 
@@ -107,6 +193,9 @@
       startBtn.textContent = '游戏中...';
       startBtn.disabled = true;
       pauseBtn.textContent = '暂停';
+      lastScore = 0;
+      announce('游戏重新开始');
+      announceStatus('游戏中');
     });
 
     // 难度切换
@@ -117,6 +206,7 @@
           // 更新 UI
           difficultyBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          announce(`难度已切换为${btn.textContent}`);
         }
       });
     });
@@ -124,12 +214,47 @@
     // 分数显示更新
     const updateScoreDisplay = () => {
       const scoreManager = game.scoreManager;
-      currentScoreEl.textContent = scoreManager.getScore();
+      const newScore = scoreManager.getScore();
+      currentScoreEl.textContent = newScore;
       highScoreEl.textContent = scoreManager.getHighScore();
+
+      // 分数变化时播报
+      if (newScore !== lastScore && game.getStatus() === 'playing') {
+        const points = newScore - lastScore;
+        const foodDir = getFoodDirection();
+        announce(`得分 +${points}，当前分数 ${newScore}，食物在${foodDir}`);
+        lastScore = newScore;
+      }
     };
 
     // 定期更新分数显示（每 100ms）
     setInterval(updateScoreDisplay, 100);
+
+    // 高对比度模式
+    let isHighContrast = false;
+
+    function toggleHighContrast() {
+      isHighContrast = !isHighContrast;
+      document.body.classList.toggle('high-contrast', isHighContrast);
+      announce(isHighContrast ? '高对比度模式已开启' : '高对比度模式已关闭');
+    }
+
+    // 帮助面板显示/隐藏
+    function toggleHelp() {
+      const isVisible = helpPanel.classList.contains('visible');
+      if (isVisible) {
+        helpPanel.classList.remove('visible');
+        announce('帮助已关闭');
+      } else {
+        helpPanel.classList.add('visible');
+        announce('帮助已打开');
+      }
+    }
+
+    helpCloseBtn.addEventListener('click', () => {
+      helpPanel.classList.remove('visible');
+      announce('帮助已关闭');
+    });
 
     // 键盘快捷键
     document.addEventListener('keydown', (e) => {
@@ -145,7 +270,33 @@
           pauseBtn.click();
         }
       }
+
+      // H 键显示帮助
+      if (e.key.toLowerCase() === 'h' && !e.ctrlKey && !e.shiftKey) {
+        e.preventDefault();
+        toggleHelp();
+      }
+
+      // Ctrl+Shift+H 切换高对比度模式
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        toggleHighContrast();
+      }
     });
+
+    // 游戏结束时的播报
+    const originalGameOver = game.gameOver.bind(game);
+    game.gameOver = function() {
+      originalGameOver();
+      const finalScore = game.scoreManager.getScore();
+      const highScore = game.scoreManager.getHighScore();
+      if (finalScore >= highScore) {
+        announce(`游戏结束！恭喜你打破记录！最终得分 ${finalScore}`);
+      } else {
+        announce(`游戏结束，最终得分 ${finalScore}，最高分 ${highScore}`);
+      }
+      announceStatus('游戏结束');
+    };
   </script>
 </body>
 </html>

@@ -62,6 +62,8 @@ export class Game {
     if (this.status === 'start') {
       this.status = 'playing';
       this.lastTime = performance.now();
+      // 记录游戏开始时间
+      this.scoreManager.setStartTime(this.lastTime);
       this.gameLoop();
     }
   }
@@ -106,6 +108,8 @@ export class Game {
     const newDirection = this.inputHandler.getNextDirection();
     if (newDirection) {
       this.snake.setDirection(newDirection);
+      // 记录操作次数
+      this.scoreManager.recordMove();
     }
 
     // 移动蛇
@@ -127,6 +131,7 @@ export class Game {
       this.animationManager.createFoodEatenAnimation(foodPos.x, foodPos.y);
 
       this.scoreManager.addScore();
+      this.scoreManager.recordFoodEaten();
       this.scoreManager.onFoodEaten();  // 更新速度等级
 
       // 生成新食物并触发动画
@@ -140,6 +145,9 @@ export class Game {
         this.renderer.canvas.height / 2
       );
     }
+
+    // 更新最大长度统计
+    this.scoreManager.updateMaxLength(this.snake.getBody().length);
   }
 
   /**
@@ -184,7 +192,24 @@ export class Game {
    */
   gameOver() {
     this.status = 'gameover';
-    this._render();
+
+    // 计算游戏时长和平均速度
+    const endTime = performance.now();
+    const startTime = this.scoreManager.gameStats.startTime || this.lastTime;
+    const duration = endTime - startTime;
+    this.scoreManager.setDuration(duration);
+    this.scoreManager.calculateAvgSpeed(duration);
+
+    // 传递统计数据给渲染器
+    const stats = this.scoreManager.getGameStats();
+    this.renderer.render(
+      this.snake.getBody(),
+      this.food.getPosition(),
+      this.scoreManager.getScore(),
+      this.scoreManager.getHighScore(),
+      this.status,
+      stats
+    );
   }
 
   /**
@@ -195,11 +220,14 @@ export class Game {
     this.snake.reset();
     // 重置分数
     this.scoreManager.resetScore();
+    // 重置统计数据
+    this.scoreManager.resetGameStats();
     // 生成新食物
     this.food.generate(this.snake.getBody());
     // 重置状态
     this.status = 'playing';
     this.lastTime = performance.now();
+    this.scoreManager.setStartTime(this.lastTime);
     this.accumulatedTime = 0;
     // 开始循环
     this.gameLoop();
