@@ -14,6 +14,15 @@ export class Renderer {
     this.canvas.height = CONFIG.CANVAS.HEIGHT;
 
     this.gridSize = CONFIG.CANVAS.GRID_SIZE;
+    this.animationManager = null;
+  }
+
+  /**
+   * 设置动画管理器
+   * @param {AnimationManager} manager - 动画管理器实例
+   */
+  setAnimationManager(manager) {
+    this.animationManager = manager;
   }
 
   /**
@@ -115,6 +124,31 @@ export class Renderer {
    * @param {Object} foodPosition - 食物坐标
    */
   drawFood(foodPosition) {
+    // 如果有动画管理器，获取动画状态
+    if (this.animationManager && this.animationManager.hasFoodAnimation()) {
+      const anim = this.animationManager.getFoodAnimation();
+      const x = anim.x * this.gridSize;
+      const y = anim.y * this.gridSize;
+
+      this.ctx.save();
+      const centerX = x + this.gridSize / 2;
+      const centerY = y + this.gridSize / 2;
+      const baseRadius = (this.gridSize / 2) - 2;
+
+      this.ctx.translate(centerX, centerY);
+      this.ctx.scale(anim.scale, anim.scale);
+      this.ctx.globalAlpha = anim.opacity;
+
+      this.ctx.fillStyle = CONFIG.COLORS.FOOD;
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, baseRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.restore();
+      return;
+    }
+
+    // 默认绘制
     const x = foodPosition.x * this.gridSize;
     const y = foodPosition.y * this.gridSize;
 
@@ -149,70 +183,118 @@ export class Renderer {
   }
 
   /**
-   * 格式化时长
-   * @param {number} ms - 毫秒
-   * @returns {string} 格式化后的时长
+   * 绘制速度条
+   * @param {number} level - 当前速度等级
+   * @param {number} maxLevel - 最大速度等级
    */
-  formatDuration(ms) {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    if (minutes > 0) {
-      return `${minutes}分${remainingSeconds}秒`;
+  drawSpeedBar(level, maxLevel) {
+    const barWidth = 150;
+    const barHeight = 12;
+    const barX = 10;
+    const barY = 45;
+
+    // 速度等级文字
+    this.ctx.fillStyle = CONFIG.COLORS.TEXT;
+    this.ctx.font = '14px Arial';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText(`速度: Lv.${level}`, barX, barY - 3);
+
+    // 背景条
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    this.ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    // 进度条
+    const percentage = level / maxLevel;
+    const gradient = this.ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
+    
+    // 根据速度等级设置颜色（绿色->黄色->红色）
+    if (percentage < 0.5) {
+      gradient.addColorStop(0, '#00ff00');
+      gradient.addColorStop(1, '#88ff00');
+    } else if (percentage < 0.8) {
+      gradient.addColorStop(0, '#88ff00');
+      gradient.addColorStop(1, '#ffff00');
+    } else {
+      gradient.addColorStop(0, '#ffff00');
+      gradient.addColorStop(1, '#ff4444');
     }
-    return `${seconds}秒`;
+    
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(barX, barY, barWidth * percentage, barHeight);
+
+    // 边框
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(barX, barY, barWidth, barHeight);
+  }
+
+  /**
+   * 渲染得分飘字动画
+   */
+  renderScorePopups() {
+    if (!this.animationManager) return;
+
+    const popups = this.animationManager.getScorePopups();
+    popups.forEach(popup => {
+      this.ctx.save();
+      this.ctx.globalAlpha = popup.opacity;
+      this.ctx.fillStyle = '#ffff00';
+      this.ctx.font = 'bold 24px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('+10', popup.x, popup.y - popup.offsetY);
+      this.ctx.restore();
+    });
+  }
+
+  /**
+   * 应用屏幕抖动
+   */
+  applyScreenShake() {
+    if (!this.animationManager) return;
+
+    const shake = this.animationManager.getScreenShakeOffset();
+    if (shake.offsetX !== 0 || shake.offsetY !== 0) {
+      this.ctx.save();
+      this.ctx.translate(shake.offsetX, shake.offsetY);
+    }
+  }
+
+  /**
+   * 恢复屏幕抖动
+   */
+  restoreScreenShake() {
+    if (!this.animationManager) return;
+
+    const shake = this.animationManager.getScreenShakeOffset();
+    if (shake.offsetX !== 0 || shake.offsetY !== 0) {
+      this.ctx.restore();
+    }
   }
 
   /**
    * 绘制游戏结束画面
    * @param {number} score - 最终分数
-   * @param {Object} stats - 游戏统计数据
    */
-  drawGameOver(score, stats = {}) {
+  drawGameOver(score) {
     // 半透明遮罩
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    let yOffset = this.canvas.height / 2 - 80;
 
     // 游戏结束文字
     this.ctx.fillStyle = '#ff4444';
     this.ctx.font = 'bold 48px Arial';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('游戏结束', this.canvas.width / 2, yOffset);
+    this.ctx.fillText('游戏结束', this.canvas.width / 2, this.canvas.height / 2 - 40);
 
     // 分数
     this.ctx.fillStyle = CONFIG.COLORS.TEXT;
     this.ctx.font = '24px Arial';
-    this.ctx.fillText(`最终分数: ${score}`, this.canvas.width / 2, yOffset + 50);
-
-    // 统计数据
-    if (stats.duration !== undefined) {
-      this.ctx.font = '16px Arial';
-      this.ctx.fillStyle = '#cccccc';
-      const statsLines = [
-        `游戏时长: ${this.formatDuration(stats.duration)}`,
-        `吃到食物: ${stats.foodEaten} 个`,
-        `最大长度: ${stats.maxLength}`,
-        `平均速度: ${stats.avgSpeed} 次/秒`,
-        `操作次数: ${stats.totalMoves}`
-      ];
-
-      yOffset += 90;
-      statsLines.forEach((line, index) => {
-        this.ctx.fillText(line, this.canvas.width / 2, yOffset + (index * 24));
-      });
-
-      // 调整提示位置
-      yOffset += statsLines.length * 24 + 20;
-    } else {
-      yOffset += 90;
-    }
+    this.ctx.fillText(`最终分数: ${score}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
 
     // 提示
     this.ctx.font = '18px Arial';
     this.ctx.fillStyle = '#aaaaaa';
-    this.ctx.fillText('按 R 键重新开始', this.canvas.width / 2, yOffset + 30);
+    this.ctx.fillText('按 R 键重新开始', this.canvas.width / 2, this.canvas.height / 2 + 60);
   }
 
   /**
@@ -242,20 +324,24 @@ export class Renderer {
    * @param {number} score - 当前分数
    * @param {number} highScore - 最高分
    * @param {string} status - 游戏状态
-   * @param {Object} stats - 游戏统计数据（可选）
    */
-  render(snakeBody, foodPosition, score, highScore, status, stats = {}) {
+  render(snakeBody, foodPosition, score, highScore, status) {
+    this.applyScreenShake();
+    
     this.clear();
     this.drawGrid();
     this.drawSnake(snakeBody);
     this.drawFood(foodPosition);
     this.drawScore(score, highScore);
+    this.renderScorePopups();
 
     // 根据状态绘制额外内容
     if (status === 'paused') {
       this.drawPause();
     } else if (status === 'gameover') {
-      this.drawGameOver(score, stats);
+      this.drawGameOver(score);
     }
+    
+    this.restoreScreenShake();
   }
 }

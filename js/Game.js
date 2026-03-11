@@ -3,6 +3,7 @@ import { Snake } from './Snake.js';
 import { Food } from './Food.js';
 import { InputHandler } from './InputHandler.js';
 import { ScoreManager } from './ScoreManager.js';
+import { AnimationManager } from './AnimationManager.js';
 
 /**
  * 游戏主类
@@ -21,6 +22,10 @@ export class Game {
     this.food = new Food();
     this.inputHandler = new InputHandler();
     this.scoreManager = new ScoreManager();
+    this.animationManager = new AnimationManager();
+
+    // 集成动画管理器到渲染器
+    this.renderer.setAnimationManager(this.animationManager);
 
     // 设置回调
     this._setupCallbacks();
@@ -33,9 +38,21 @@ export class Game {
    * 设置输入处理器回调
    */
   _setupCallbacks() {
+    this.inputHandler.on('togglePause', () => this._togglePauseHandler());
     this.inputHandler.on('pause', () => this.pause());
     this.inputHandler.on('resume', () => this.resume());
     this.inputHandler.on('restart', () => this.restart());
+  }
+
+  /**
+   * 处理暂停/继续切换
+   */
+  _togglePauseHandler() {
+    if (this.status === 'playing') {
+      this.pause();
+    } else if (this.status === 'paused') {
+      this.resume();
+    }
   }
 
   /**
@@ -63,7 +80,11 @@ export class Game {
     const deltaTime = timestamp - this.lastTime;
     this.lastTime = timestamp;
 
-    const speed = this.scoreManager.getDifficultyConfig().speed;
+    // 更新动画系统
+    this.animationManager.update(deltaTime);
+
+    // 使用动态速度（根据速度等级）
+    const speed = this.scoreManager.getCurrentInterval();
     this.accumulatedTime += deltaTime;
 
     // 根据速度更新游戏
@@ -97,15 +118,32 @@ export class Game {
 
     // 检查碰撞
     if (this.snake.checkCollisionWall() || this.snake.checkCollisionSelf()) {
+      // 触发游戏结束屏幕抖动
+      this.animationManager.triggerScreenShake();
       this.gameOver();
       return;
     }
 
     // 处理吃食物
     if (ateFood) {
+      // 触发食物消失动画
+      const foodPos = this.food.getPosition();
+      this.animationManager.createFoodEatenAnimation(foodPos.x, foodPos.y);
+
       this.scoreManager.addScore();
       this.scoreManager.recordFoodEaten();
+      this.scoreManager.onFoodEaten();  // 更新速度等级
+
+      // 生成新食物并触发动画
       this.food.generate(this.snake.getBody());
+      const newFoodPos = this.food.getPosition();
+      this.animationManager.createFoodAppearAnimation(newFoodPos.x, newFoodPos.y);
+
+      // 触发得分飘字动画
+      this.animationManager.createScorePopup(
+        this.renderer.canvas.width / 2,
+        this.renderer.canvas.height / 2
+      );
     }
 
     // 更新最大长度统计

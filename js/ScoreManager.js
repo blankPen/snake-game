@@ -10,15 +10,8 @@ export class ScoreManager {
     this.highScore = this._loadHighScore();
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
-
-    // 游戏统计数据
-    this.gameStats = {
-      duration: 0,           // 游戏时长（毫秒）
-      foodEaten: 0,           // 吃到食物数量
-      maxLength: 0,           // 蛇的最大长度
-      avgSpeed: 0,            // 平均移动速度（次/秒）
-      totalMoves: 0           // 总操作次数
-    };
+    this.foodEaten = 0;  // 吃到的食物数量（用于计算速度等级）
+    this.speedLevel = 0; // 当前速度等级
   }
 
   /**
@@ -135,83 +128,68 @@ export class ScoreManager {
     return this.foodValue;
   }
 
-  // ==================== 游戏统计功能 ====================
-
   /**
-   * 记录吃到食物
+   * 吃到食物时调用，计算新等级
    */
-  recordFoodEaten() {
-    this.gameStats.foodEaten++;
+  onFoodEaten() {
+    this.foodEaten++;
+    
+    // 计算速度等级：每 FOODS_PER_LEVEL 个食物升一级
+    const maxLevel = CONFIG.SPEED_SYSTEM.MAX_LEVEL;
+    const foodsPerLevel = CONFIG.SPEED_SYSTEM.FOODS_PER_LEVEL;
+    
+    this.speedLevel = Math.min(
+      Math.floor(this.foodEaten / foodsPerLevel),
+      maxLevel
+    );
   }
 
   /**
-   * 更新最大长度
-   * @param {number} currentLength - 当前蛇身长度
+   * 获取当前速度等级
+   * @returns {number} 速度等级
    */
-  updateMaxLength(currentLength) {
-    if (currentLength > this.gameStats.maxLength) {
-      this.gameStats.maxLength = currentLength;
-    }
+  getSpeedLevel() {
+    return this.speedLevel;
   }
 
   /**
-   * 记录一次操作
+   * 获取最大速度等级
+   * @returns {number} 最大等级
    */
-  recordMove() {
-    this.gameStats.totalMoves++;
+  getMaxSpeedLevel() {
+    return CONFIG.SPEED_SYSTEM.MAX_LEVEL;
   }
 
   /**
-   * 设置游戏开始时间
-   * @param {number} startTime - 开始时间戳
+   * 获取当前速度间隔（毫秒）
+   * @returns {number} 速度间隔
    */
-  setStartTime(startTime) {
-    this.gameStats.startTime = startTime;
+  getCurrentInterval() {
+    const baseInterval = this.getDifficultyConfig().speed;
+    const step = CONFIG.SPEED_SYSTEM.SPEED_STEP;
+    const minInterval = CONFIG.SPEED_SYSTEM.MIN_INTERVAL;
+    
+    // interval = baseInterval - (level * step)
+    const interval = baseInterval - (this.speedLevel * step);
+    
+    // 确保不超过最小速度上限
+    return Math.max(interval, minInterval);
   }
 
   /**
-   * 设置游戏时长
-   * @param {number} duration - 游戏时长（毫秒）
+   * 获取当前速度百分比（用于UI显示）
+   * @returns {number} 0-100 的百分比
    */
-  setDuration(duration) {
-    this.gameStats.duration = duration;
+  getSpeedPercentage() {
+    return Math.round((this.speedLevel / CONFIG.SPEED_SYSTEM.MAX_LEVEL) * 100);
   }
 
   /**
-   * 计算平均速度
-   * @param {number} duration - 游戏时长（毫秒）
+   * 重置分数和速度等级
    */
-  calculateAvgSpeed(duration) {
-    if (duration > 0) {
-      // 速度 = 总移动次数 / 时长（秒）
-      this.gameStats.avgSpeed = (this.gameStats.totalMoves / (duration / 1000)).toFixed(2);
-    }
-  }
-
-  /**
-   * 获取游戏统计数据
-   * @returns {Object} 统计数据对象
-   */
-  getGameStats() {
-    return {
-      duration: this.gameStats.duration,
-      foodEaten: this.gameStats.foodEaten,
-      maxLength: this.gameStats.maxLength,
-      avgSpeed: parseFloat(this.gameStats.avgSpeed) || 0,
-      totalMoves: this.gameStats.totalMoves
-    };
-  }
-
-  /**
-   * 重置游戏统计数据
-   */
-  resetGameStats() {
-    this.gameStats = {
-      duration: 0,
-      foodEaten: 0,
-      maxLength: 0,
-      avgSpeed: 0,
-      totalMoves: 0
-    };
+  resetScore() {
+    this.currentScore = 0;
+    this.foodEaten = 0;
+    this.speedLevel = 0;
   }
 }
