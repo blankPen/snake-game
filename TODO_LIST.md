@@ -1,6 +1,6 @@
 # TODO_LIST.md - snake-game 方向建议
 
-> 最后更新: 2026-03-11 13:45
+> 最后更新: 2026-03-11 14:25
 
 ## 彭震的方向建议
 
@@ -31,3 +31,17 @@
 | Open Issues | 7 |
 | Open PRs | 8 |
 | 已完成任务 | 28+ |
+
+---
+
+## 待处理 Issues (2026-03-11)
+
+| # | 标题 | 标签 |
+|---|------|------|
+| 58 | 移动端触摸控制优化 | enhancement |
+| 50 | 引入事件总线架构 | - |
+| 48 | 游戏过程数据记录系统 | enhancement |
+| 47 | AI 对手模式 | enhancement |
+| 46 | 游戏回放系统 | enhancement |
+| 44 | ESLint 代码检查与 CI 自动化 | enhancement |
+| 41 | 渲染性能优化 - 网格缓存与双缓冲 | enhancement |
