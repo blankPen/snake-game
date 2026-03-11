@@ -10,6 +10,15 @@ export class ScoreManager {
     this.highScore = this._loadHighScore();
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
+
+    // 游戏统计数据
+    this.gameStats = {
+      duration: 0,           // 游戏时长（毫秒）
+      foodEaten: 0,           // 吃到食物数量
+      maxLength: 0,           // 蛇的最大长度
+      avgSpeed: 0,            // 平均移动速度（次/秒）
+      totalMoves: 0           // 总操作次数
+    };
   }
 
   /**
@@ -124,5 +133,85 @@ export class ScoreManager {
    */
   getFoodValue() {
     return this.foodValue;
+  }
+
+  // ==================== 游戏统计功能 ====================
+
+  /**
+   * 记录吃到食物
+   */
+  recordFoodEaten() {
+    this.gameStats.foodEaten++;
+  }
+
+  /**
+   * 更新最大长度
+   * @param {number} currentLength - 当前蛇身长度
+   */
+  updateMaxLength(currentLength) {
+    if (currentLength > this.gameStats.maxLength) {
+      this.gameStats.maxLength = currentLength;
+    }
+  }
+
+  /**
+   * 记录一次操作
+   */
+  recordMove() {
+    this.gameStats.totalMoves++;
+  }
+
+  /**
+   * 设置游戏开始时间
+   * @param {number} startTime - 开始时间戳
+   */
+  setStartTime(startTime) {
+    this.gameStats.startTime = startTime;
+  }
+
+  /**
+   * 设置游戏时长
+   * @param {number} duration - 游戏时长（毫秒）
+   */
+  setDuration(duration) {
+    this.gameStats.duration = duration;
+  }
+
+  /**
+   * 计算平均速度
+   * @param {number} duration - 游戏时长（毫秒）
+   */
+  calculateAvgSpeed(duration) {
+    if (duration > 0) {
+      // 速度 = 总移动次数 / 时长（秒）
+      this.gameStats.avgSpeed = (this.gameStats.totalMoves / (duration / 1000)).toFixed(2);
+    }
+  }
+
+  /**
+   * 获取游戏统计数据
+   * @returns {Object} 统计数据对象
+   */
+  getGameStats() {
+    return {
+      duration: this.gameStats.duration,
+      foodEaten: this.gameStats.foodEaten,
+      maxLength: this.gameStats.maxLength,
+      avgSpeed: parseFloat(this.gameStats.avgSpeed) || 0,
+      totalMoves: this.gameStats.totalMoves
+    };
+  }
+
+  /**
+   * 重置游戏统计数据
+   */
+  resetGameStats() {
+    this.gameStats = {
+      duration: 0,
+      foodEaten: 0,
+      maxLength: 0,
+      avgSpeed: 0,
+      totalMoves: 0
+    };
   }
 }

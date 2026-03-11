@@ -149,29 +149,70 @@ export class Renderer {
   }
 
   /**
+   * 格式化时长
+   * @param {number} ms - 毫秒
+   * @returns {string} 格式化后的时长
+   */
+  formatDuration(ms) {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes > 0) {
+      return `${minutes}分${remainingSeconds}秒`;
+    }
+    return `${seconds}秒`;
+  }
+
+  /**
    * 绘制游戏结束画面
    * @param {number} score - 最终分数
+   * @param {Object} stats - 游戏统计数据
    */
-  drawGameOver(score) {
+  drawGameOver(score, stats = {}) {
     // 半透明遮罩
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    let yOffset = this.canvas.height / 2 - 80;
 
     // 游戏结束文字
     this.ctx.fillStyle = '#ff4444';
     this.ctx.font = 'bold 48px Arial';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('游戏结束', this.canvas.width / 2, this.canvas.height / 2 - 40);
+    this.ctx.fillText('游戏结束', this.canvas.width / 2, yOffset);
 
     // 分数
     this.ctx.fillStyle = CONFIG.COLORS.TEXT;
     this.ctx.font = '24px Arial';
-    this.ctx.fillText(`最终分数: ${score}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
+    this.ctx.fillText(`最终分数: ${score}`, this.canvas.width / 2, yOffset + 50);
+
+    // 统计数据
+    if (stats.duration !== undefined) {
+      this.ctx.font = '16px Arial';
+      this.ctx.fillStyle = '#cccccc';
+      const statsLines = [
+        `游戏时长: ${this.formatDuration(stats.duration)}`,
+        `吃到食物: ${stats.foodEaten} 个`,
+        `最大长度: ${stats.maxLength}`,
+        `平均速度: ${stats.avgSpeed} 次/秒`,
+        `操作次数: ${stats.totalMoves}`
+      ];
+
+      yOffset += 90;
+      statsLines.forEach((line, index) => {
+        this.ctx.fillText(line, this.canvas.width / 2, yOffset + (index * 24));
+      });
+
+      // 调整提示位置
+      yOffset += statsLines.length * 24 + 20;
+    } else {
+      yOffset += 90;
+    }
 
     // 提示
     this.ctx.font = '18px Arial';
     this.ctx.fillStyle = '#aaaaaa';
-    this.ctx.fillText('按 R 键重新开始', this.canvas.width / 2, this.canvas.height / 2 + 60);
+    this.ctx.fillText('按 R 键重新开始', this.canvas.width / 2, yOffset + 30);
   }
 
   /**
@@ -201,8 +242,9 @@ export class Renderer {
    * @param {number} score - 当前分数
    * @param {number} highScore - 最高分
    * @param {string} status - 游戏状态
+   * @param {Object} stats - 游戏统计数据（可选）
    */
-  render(snakeBody, foodPosition, score, highScore, status) {
+  render(snakeBody, foodPosition, score, highScore, status, stats = {}) {
     this.clear();
     this.drawGrid();
     this.drawSnake(snakeBody);
@@ -213,7 +255,7 @@ export class Renderer {
     if (status === 'paused') {
       this.drawPause();
     } else if (status === 'gameover') {
-      this.drawGameOver(score);
+      this.drawGameOver(score, stats);
     }
   }
 }

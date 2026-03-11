@@ -145,7 +145,7 @@
       if (dx > 0) horizontal = '右';
       else if (dx < 0) horizontal = '左';
 
-      if (dy > 0) horizontal = '下';
+      if (dy > 0) vertical = '下';
       else if (dy < 0) vertical = '上';
 
       // 综合方向
@@ -221,7 +221,8 @@
       // 分数变化时播报
       if (newScore !== lastScore && game.getStatus() === 'playing') {
         const points = newScore - lastScore;
-        announce(`得分 +${points}，当前分数 ${newScore}`);
+        const foodDir = getFoodDirection();
+        announce(`得分 +${points}，当前分数 ${newScore}，食物在${foodDir}`);
         lastScore = newScore;
       }
     };
