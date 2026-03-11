@@ -305,3 +305,163 @@ kbd {
 .pulse {
   animation: pulse 2s ease-in-out infinite;
 }
+
+/* 屏幕阅读器专用 - 视觉隐藏但可被读屏软件读取 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 高对比度模式 */
+.high-contrast {
+  --primary-color: #00ff00;
+  --secondary-color: #000000;
+  --accent-color: #ffff00;
+  --text-color: #ffffff;
+  --border-color: #ffffff;
+  --success-color: #00ff00;
+  --warning-color: #ffff00;
+}
+
+.high-contrast body {
+  background-color: #000000;
+}
+
+.high-contrast .container {
+  background-color: #000000;
+}
+
+.high-contrast .game-header,
+.high-contrast .canvas-wrapper,
+.high-contrast .game-info .info-card,
+.high-contrast .game-footer {
+  background-color: #000000;
+  border: 3px solid #ffffff;
+}
+
+.high-contrast .game-header h1,
+.high-contrast .info-card h3 {
+  color: #00ff00;
+  text-shadow: 0 0 5px #00ff00;
+}
+
+.high-contrast .difficulty-btn {
+  background-color: #000000;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+.high-contrast .difficulty-btn.active {
+  background-color: #00ff00;
+  color: #000000;
+}
+
+.high-contrast .difficulty-btn:hover {
+  border-color: #00ff00;
+}
+
+.high-contrast .score-item .value {
+  color: #00ff00;
+  text-shadow: 0 0 5px #00ff00;
+}
+
+.high-contrast .btn {
+  border: 2px solid #ffffff;
+}
+
+.high-contrast .btn-primary {
+  background-color: #00ff00;
+  color: #000000;
+}
+
+.high-contrast .btn-secondary {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.high-contrast .btn-warning {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+.high-contrast kbd {
+  background-color: #000000;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+.high-contrast .info-card li {
+  color: #ffffff;
+}
+
+.high-contrast #gameCanvas {
+  border: 3px solid #ffffff;
+}
+
+.high-contrast .label {
+  color: #ffffff;
+}
+
+/* 帮助面板 */
+.help-panel {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--secondary-color);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  max-width: 500px;
+  width: 90%;
+}
+
+.help-panel.visible {
+  display: block;
+}
+
+.help-panel h2 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.help-panel ul {
+  list-style: none;
+}
+
+.help-panel li {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.help-panel kbd {
+  min-width: 60px;
+}
+
+.help-close-btn {
+  margin-top: 20px;
+  width: 100%;
+}
+
+/* 高对比度模式下的帮助面板 */
+.high-contrast .help-panel {
+  background-color: #000000;
+  border: 3px solid #ffffff;
+}
+
+.high-contrast .help-panel h2 {
+  color: #00ff00;
+  text-shadow: 0 0 5px #00ff00;
+}
