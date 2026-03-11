@@ -45,6 +45,7 @@
 
 | Issue | 功能 | 标签 | 状态 |
 |-------|------|------|------|
+| #33 | InputHandler 回调不匹配 Bug | bug | 🔄 待分配 (Beta) |
 | #67 | 连击系统 (Combo) | feature | 🔄 开发中 (Beta) |
 | #61 | 优化分数更新机制（事件驱动） | enhancement, performance | 🔄 开发中 (Beta) |
 | #50 | 事件总线架构重构 | refactor | 🔄 Arch 设计方案中 |
