@@ -27,7 +27,8 @@ export class InputHandler {
       onTogglePause: null,
       onPause: null,
       onResume: null,
-      onRestart: null
+      onRestart: null,
+      onToggleHelp: null
     };
 
     this._initKeyboard();
@@ -123,6 +124,20 @@ export class InputHandler {
       e.preventDefault();
       if (this.callbacks.onRestart) {
         this.callbacks.onRestart();
+      }
+    }
+    // 切换帮助面板
+    else if (key === 'h') {
+      e.preventDefault();
+      if (this.callbacks.onToggleHelp) {
+        this.callbacks.onToggleHelp();
+      }
+    }
+    // 关闭帮助面板 (ESC)
+    else if (key === 'escape') {
+      e.preventDefault();
+      if (this.callbacks.onToggleHelp) {
+        this.callbacks.onToggleHelp();
       }
     }
   }
