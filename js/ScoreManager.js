@@ -11,6 +11,8 @@ export class ScoreManager {
     this.currentDifficulty = DEFAULT_DIFFICULTY;
     this.foodValue = 10; // 每个食物的分数
     this.onScoreChange = null; // 分数变化回调
+    this.foodEaten = 0;  // 吃到的食物数量（用于计算速度等级）
+    this.speedLevel = 0; // 当前速度等级
   }
 
   /**
@@ -88,6 +90,8 @@ export class ScoreManager {
    */
   resetScore() {
     this.currentScore = 0;
+    this.foodEaten = 0;
+    this.speedLevel = 0;
   }
 
   /**
@@ -141,5 +145,61 @@ export class ScoreManager {
    */
   getFoodValue() {
     return this.foodValue;
+  }
+
+  /**
+   * 吃到食物时调用，计算新等级
+   */
+  onFoodEaten() {
+    this.foodEaten++;
+    
+    // 计算速度等级：每 FOODS_PER_LEVEL 个食物升一级
+    const maxLevel = CONFIG.SPEED_SYSTEM.MAX_LEVEL;
+    const foodsPerLevel = CONFIG.SPEED_SYSTEM.FOODS_PER_LEVEL;
+    
+    this.speedLevel = Math.min(
+      Math.floor(this.foodEaten / foodsPerLevel),
+      maxLevel
+    );
+  }
+
+  /**
+   * 获取当前速度等级
+   * @returns {number} 速度等级
+   */
+  getSpeedLevel() {
+    return this.speedLevel;
+  }
+
+  /**
+   * 获取最大速度等级
+   * @returns {number} 最大等级
+   */
+  getMaxSpeedLevel() {
+    return CONFIG.SPEED_SYSTEM.MAX_LEVEL;
+  }
+
+  /**
+   * 获取当前速度间隔（毫秒）
+   * @returns {number} 速度间隔
+   */
+  getCurrentInterval() {
+    const baseInterval = this.getDifficultyConfig().speed;
+    const step = CONFIG.SPEED_SYSTEM.SPEED_STEP;
+    const minInterval = CONFIG.SPEED_SYSTEM.MIN_INTERVAL;
+    
+    // interval = baseInterval - (level * step)
+    const interval = baseInterval - (this.speedLevel * step);
+    
+    // 确保不超过最小速度上限
+    return Math.max(interval, minInterval);
+  }
+
+  /**
+   * 获取当前速度百分比（用于UI显示）
+   * @returns {number} 0-100 的百分比
+   */
+  getSpeedPercentage() {
+    return Math.round((this.speedLevel / CONFIG.SPEED_SYSTEM.MAX_LEVEL) * 100);
   }
 }
