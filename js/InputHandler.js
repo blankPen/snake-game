@@ -51,12 +51,22 @@ export class InputHandler {
     let touchStartY = 0;
     const MIN_SWIPE_DISTANCE = 30;
 
+    // 防止误触 - 记录触摸开始时间
+    let touchStartTime = 0;
+
     document.addEventListener('touchstart', (e) => {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
     }, { passive: true });
 
     document.addEventListener('touchend', (e) => {
+      // 计算触摸时长，过短的触摸视为误触
+      const touchDuration = Date.now() - touchStartTime;
+      if (touchDuration < 100) {
+        return; // 触摸时间太短，可能是误触
+      }
+
       const touchEndX = e.changedTouches[0].clientX;
       const touchEndY = e.changedTouches[0].clientY;
 
