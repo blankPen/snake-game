@@ -3,6 +3,7 @@ import { CONFIG } from './config.js';
 /**
  * 渲染引擎类
  * 负责 Canvas 绘制和游戏画面渲染
+ * 包含网格缓存优化
  */
 export class Renderer {
   constructor(canvasId) {
@@ -14,6 +15,13 @@ export class Renderer {
     this.canvas.height = CONFIG.CANVAS.HEIGHT;
 
     this.gridSize = CONFIG.CANVAS.GRID_SIZE;
+
+    // 网格缓存 - 离屏 Canvas
+    this.gridCanvas = document.createElement('canvas');
+    this.gridCanvas.width = this.canvas.width;
+    this.gridCanvas.height = this.canvas.height;
+    this.gridCtx = this.gridCanvas.getContext('2d');
+    this._renderGridCache();
 
     // 动画状态
     this.foodAnimation = {
@@ -33,6 +41,31 @@ export class Renderer {
   }
 
   /**
+   * 预渲染网格到离屏 Canvas
+   * @private
+   */
+  _renderGridCache() {
+    this.gridCtx.strokeStyle = CONFIG.COLORS.GRID;
+    this.gridCtx.lineWidth = 1;
+
+    // 垂直线
+    for (let x = 0; x <= this.gridCanvas.width; x += this.gridSize) {
+      this.gridCtx.beginPath();
+      this.gridCtx.moveTo(x, 0);
+      this.gridCtx.lineTo(x, this.gridCanvas.height);
+      this.gridCtx.stroke();
+    }
+
+    // 水平线
+    for (let y = 0; y <= this.gridCanvas.height; y += this.gridSize) {
+      this.gridCtx.beginPath();
+      this.gridCtx.moveTo(0, y);
+      this.gridCtx.lineTo(this.gridCanvas.width, y);
+      this.gridCtx.stroke();
+    }
+  }
+
+  /**
    * 设置动画管理器
    * @param {AnimationManager} manager - 动画管理器实例
    */
@@ -49,27 +82,11 @@ export class Renderer {
   }
 
   /**
-   * 绘制网格线（可选）
+   * 绘制网格线（使用缓存）
    */
   drawGrid() {
-    this.ctx.strokeStyle = CONFIG.COLORS.GRID;
-    this.ctx.lineWidth = 1;
-
-    // 垂直线
-    for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.canvas.height);
-      this.ctx.stroke();
-    }
-
-    // 水平线
-    for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.canvas.width, y);
-      this.ctx.stroke();
-    }
+    // 直接拷贝预渲染的网格背景，比每次重新绘制更快
+    this.ctx.drawImage(this.gridCanvas, 0, 0);
   }
 
   /**
